@@ -21,53 +21,80 @@ const cartSchema = z.object({
     .min(1),
 });
 
-export async function createCheckout(req: Request, res: Response, next: NextFunction) {
+export async function createCheckout(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    // only signed-in users can start checkout
+    console.log("\n========== CHECKOUT START ==========");
+
     const { userId, isAuthenticated } = getAuth(req);
+    console.log("Auth:", { userId, isAuthenticated });
+
     if (!isAuthenticated || !userId) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
+      return res.status(401).json({ error: "Unauthorized" });
     }
+
+    console.log("Request Body:", req.body);
 
     const parsed = cartSchema.safeParse(req.body);
+
     if (!parsed.success) {
-      res.status(400).json({ error: "Invalid cart", details: parsed.error.flatten() });
-      return;
+      console.error("Validation Error:", parsed.error.flatten());
+      return res.status(400).json({
+        error: "Invalid cart",
+        details: parsed.error.flatten(),
+      });
     }
 
-    // polar access token is required
+    console.log("Parsed Cart:", parsed.data);
+
+    console.log("POLAR_ACCESS_TOKEN:", !!env.POLAR_ACCESS_TOKEN);
+    console.log("POLAR_CHECKOUT_PRODUCT_ID:", env.POLAR_CHECKOUT_PRODUCT_ID);
+    console.log("FRONTEND_URL:", env.FRONTEND_URL);
+
     if (!env.POLAR_ACCESS_TOKEN) {
-      res.status(503).json({ error: "Payments are not configured" });
-      return;
+      return res.status(503).json({
+        error: "Payments are not configured",
+      });
     }
 
     const localUser = await getLocalUser(userId);
+    console.log("Local User:", localUser);
+
     if (!localUser) {
-      res.status(503).json({ error: "Account not synced yet" });
-      return;
+      return res.status(503).json({
+        error: "Account not synced yet",
+      });
     }
 
     const ids = parsed.data.items.map((i) => i.productId);
+    console.log("Product IDs:", ids);
 
-    // load every cart product that exists, is active, and matches the IDs we asked for.
     const prodRows = await db
       .select()
       .from(products)
       .where(and(inArray(products.id, ids), eq(products.active, true)));
 
+    console.log("Products Found:", prodRows);
+
     if (prodRows.length !== ids.length) {
-      res.status(400).json({ error: "One or more products are invalid" });
-      return;
+      return res.status(400).json({
+        error: "One or more products are invalid",
+      });
     }
 
     const byId = new Map(prodRows.map((p) => [p.id, p]));
+
     let totalCents = 0;
     const lines: CheckoutSessionLine[] = [];
 
     for (const line of parsed.data.items) {
       const p = byId.get(line.productId)!;
+
       totalCents += p.priceCents * line.quantity;
+
       lines.push({
         productId: p.id,
         quantity: line.quantity,
@@ -75,12 +102,16 @@ export async function createCheckout(req: Request, res: Response, next: NextFunc
       });
     }
 
+    console.log("Checkout Lines:", lines);
+    console.log("Total:", totalCents);
+
     if (totalCents < 10) {
-      res.status(400).json({
-        error: "Total below Polar minimum (e.g. USD requires at least 10 cents)",
+      return res.status(400).json({
+        error: "Total below Polar minimum",
       });
-      return;
     }
+
+    console.log("Creating checkout session in DB...");
 
     const [session] = await db
       .insert(checkoutSessions)
@@ -92,8 +123,12 @@ export async function createCheckout(req: Request, res: Response, next: NextFunc
       })
       .returning();
 
+    console.log("Checkout Session:", session);
+
     const successUrl = `${env.FRONTEND_URL}/checkout/return?checkout_id={CHECKOUT_ID}`;
     const returnUrl = `${env.FRONTEND_URL}/cart`;
+
+    console.log("Calling Polar API...");
 
     const checkout = await polarCreateCheckout(env, {
       products: [env.POLAR_CHECKOUT_PRODUCT_ID],
@@ -106,20 +141,42 @@ export async function createCheckout(req: Request, res: Response, next: NextFunc
           },
         ],
       },
-
       success_url: successUrl,
       return_url: returnUrl,
       external_customer_id: userId,
-      metadata: { checkout_session_id: session.id },
+      metadata: {
+        checkout_session_id: session.id,
+      },
     });
+
+    console.log("Polar Response:", checkout);
 
     await db
       .update(checkoutSessions)
-      .set({ polarCheckoutId: checkout.id })
+      .set({
+        polarCheckoutId: checkout.id,
+      })
       .where(eq(checkoutSessions.id, session.id));
 
-    res.json({ checkoutUrl: checkout.url });
-  } catch (e) {
-    next(e);
+    console.log("Checkout completed successfully");
+    console.log("========== CHECKOUT END ==========\n");
+
+    return res.json({
+      checkoutUrl: checkout.url,
+    });
+  } catch (err) {
+    console.error("\n========== CHECKOUT ERROR ==========");
+    console.error(err);
+
+    if (err instanceof Error) {
+      console.error("Message:", err.message);
+      console.error("Stack:", err.stack);
+    }
+
+    console.error("===================================\n");
+
+    return res.status(500).json({
+      error: err instanceof Error ? err.message : "Internal server error",
+    });
   }
 }

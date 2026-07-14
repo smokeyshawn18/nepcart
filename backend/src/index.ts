@@ -8,7 +8,6 @@ import path from "node:path";
 import * as Sentry from "@sentry/node";
 
 import { clerkMiddleware } from "@clerk/express";
-import { clerkWebhookHandler } from "./webhooks/clerk";
 import { getEnv } from "./lib/env";
 import keepAliveCron from "./lib/cron";
 
@@ -27,16 +26,17 @@ const app = express();
 
 const rawJson = express.raw({ type: "application/json", limit: "1mb" });
 
-// it's important that you don't parse the webhook event data, it should be in the raw format
-app.post("/webhooks/clerk", rawJson, (req, res) => {
-  void clerkWebhookHandler(req, res);
-});
 app.post("/webhooks/polar", rawJson, (req, res) => {
   void polarWebhookHandler(req, res);
 });
 
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: [env.FRONTEND_URL, "http://localhost:5173"],
+    credentials: true,
+  }),
+);
 app.use(clerkMiddleware());
 app.use(sentryClerkUserMiddleware);
 
@@ -74,7 +74,12 @@ if (fs.existsSync(publicDir)) {
 Sentry.setupExpressErrorHandler(app);
 
 app.use(
-  (_err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  (
+    _err: unknown,
+    _req: express.Request,
+    res: express.Response,
+    _next: express.NextFunction,
+  ) => {
     const sentryId = (res as express.Response & { sentry?: string }).sentry;
 
     res.status(500).json({
