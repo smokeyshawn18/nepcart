@@ -8,12 +8,16 @@ export default function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-2 font-semibold text-base-content">
-              <TruckIcon className="size-8 text-primary" aria-hidden />
-              Northwind Supply
+              <img
+                src="/large.png"
+                alt="NEPCART Logo"
+                className="h-12 w-auto object-contain sm:h-14 md:h-16 lg:h-14 xl:h-16"
+              />
             </div>
             <p className="mt-3 text-sm leading-relaxed text-base-content/65">
-              Curated hardware and workspace tools. Paid orders include priority support; chat with
-              our team and join a video call when we share a link.
+              Curated hardware and workspace tools. Paid orders include priority
+              support; chat with our team and join a video call when we share a
+              link.
             </p>
           </div>
 
@@ -28,12 +32,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/cart" className="link link-hover text-base-content/80">
+                <Link
+                  to="/cart"
+                  className="link link-hover text-base-content/80"
+                >
                   Cart
                 </Link>
               </li>
               <li>
-                <Link to="/orders" className="link link-hover text-base-content/80">
+                <Link
+                  to="/orders"
+                  className="link link-hover text-base-content/80"
+                >
                   Orders
                 </Link>
               </li>
@@ -46,8 +56,13 @@ export default function Footer() {
             </h3>
             <ul className="mt-3 space-y-2 text-sm text-base-content/70">
               <li className="flex items-start gap-2">
-                <HeadphonesIcon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
-                <span>Order-scoped chat after payment; video links shared in-thread.</span>
+                <HeadphonesIcon
+                  className="mt-0.5 size-5 shrink-0 text-primary"
+                  aria-hidden
+                />
+                <span>
+                  Order-scoped chat after payment; video links shared in-thread.
+                </span>
               </li>
             </ul>
           </div>
@@ -57,8 +72,8 @@ export default function Footer() {
               Company
             </h3>
             <p className="mt-3 text-sm text-base-content/65">
-              Built for teams who care about clear specs, fast fulfillment, and human support when
-              it matters.
+              Built for teams who care about clear specs, fast fulfillment, and
+              human support when it matters.
             </p>
           </div>
         </div>

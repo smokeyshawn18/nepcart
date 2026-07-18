@@ -67,7 +67,7 @@ export default function ShippingPolicy() {
         </h1>
 
         <p className="mt-4 max-w-3xl text-base-content/70 leading-7">
-          At <strong>SPORTED</strong>, we aim to make shipping simple and
+          At <strong>NEPCART</strong>, we aim to make shipping simple and
           transparent so you know exactly what to expect after placing an order.
         </p>
 

@@ -59,7 +59,7 @@ const sections = [
     icon: Mail,
     title: "Contact Us",
     content:
-      "If you have questions about this Privacy Policy or your personal data, you can contact our support team at support@sported.com.",
+      "If you have questions about this Privacy Policy or your personal data, you can contact our support team at support@nepcart.com.",
   },
 ];
 
@@ -81,7 +81,7 @@ export default function PrivacyPolicy() {
         </h1>
 
         <p className="mt-4 text-base-content/70 max-w-2xl">
-          At <strong>SPORTED</strong>, we are committed to protecting your
+          At <strong>NEPCART</strong>, we are committed to protecting your
           personal data and being transparent about how we collect, use, and
           safeguard your information.
         </p>
