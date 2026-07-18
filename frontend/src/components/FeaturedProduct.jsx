@@ -1,20 +1,26 @@
 import { useMemo, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  ArrowRight,
-  Heart,
-  ShoppingCart,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 import { useFeaturedProducts } from "../hooks/useFeaturedProduct";
+import { FeaturedCoverflow } from "./FeaturedCoverflow";
 
 export default function FeaturedProducts() {
   const [page, setPage] = useState(1);
   const { products = [], hasMore, isLoading } = useFeaturedProducts(page, 5);
 
-  const featured = products[0];
+  const featuredSlides = useMemo(
+    () =>
+      products.map((p) => ({
+        id: p.id,
+        imageUrl: p.imageUrl,
+        name: p.name,
+        description: p.description,
+        priceCents: p.priceCents,
+        slug: p.slug,
+      })),
+    [products],
+  );
+
   const others = useMemo(() => products.slice(1), [products]);
 
   if (isLoading) {
@@ -34,6 +40,7 @@ export default function FeaturedProducts() {
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
 
       <div className="mx-auto max-w-7xl px-4">
+        {/* Header + pagination */}
         <div className="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
@@ -76,57 +83,38 @@ export default function FeaturedProducts() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-12">
-          {featured && (
-            <Link
-              to={`/product/${featured.slug}`}
-              className="group overflow-hidden rounded-3xl bg-base-200 shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-2xl lg:col-span-6"
-            >
-              <div className="relative aspect-[10/12] overflow-hidden">
-                <img
-                  src={featured.imageUrl}
-                  alt={featured.name}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+          {/* Left: 3D coverflow for featured slides */}
+          <div className="lg:col-span-6 rounded-3xl bg-base-200 shadow-lg">
+            <FeaturedCoverflow
+              slides={featuredSlides}
+              cardWidth={400}
+              cardHeight={400}
+              radius={3}
+              tilt={12}
+              sideTilt={8}
+              gap={8}
+              opacity={60}
+              autoplay={false}
+              autoplayDirection="rightToLeft"
+              showTitle={true}
+              titleFont={{
+                fontFamily: "Inter, system-ui, sans-serif",
+                fontSize: "22px",
+                letterSpacing: "-0.02em",
+                lineHeight: "1.1em",
+              }}
+              titleColor="#ffffff"
+              titlePosition={{
+                position: "bottomLeft",
+                paddingLeft: 22,
+                paddingRight: 22,
+                paddingTop: 24,
+                paddingBottom: 24,
+              }}
+            />
+          </div>
 
-                <div className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-base-content backdrop-blur">
-                  Editor&apos;s choice
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white md:p-8">
-                  <h3 className="text-2xl font-bold md:text-4xl">
-                    {featured.name}
-                  </h3>
-                  <p className="mt-3 max-w-lg text-sm leading-6 text-white/80 line-clamp-2 md:text-base">
-                    {featured.description}
-                  </p>
-
-                  <div className="mt-6 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-xs text-white/60">Starting from</p>
-                      <p className="text-2xl font-bold md:text-4xl">
-                        NPR {(featured.priceCents / 100).toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={(e) => e.preventDefault()}
-                        className="btn btn-circle bg-white/90 text-base-content hover:bg-white"
-                      >
-                        <Heart size={18} />
-                      </button>
-                      <div className="btn btn-primary gap-2 rounded-2xl px-5">
-                        Explore
-                        <ArrowRight size={16} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          )}
-
+          {/* Right: your “others” list stays similar */}
           <div className="grid gap-6 sm:grid-cols-2 auto-rows-fr lg:col-span-6">
             {others.map((product) => (
               <Link
