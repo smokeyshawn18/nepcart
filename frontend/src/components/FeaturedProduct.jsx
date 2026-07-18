@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Star, ArrowRight } from "lucide-react";
-import { Link } from "react-router";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useFeaturedProducts } from "../hooks/useFeaturedProduct";
-import { FeaturedCoverflow } from "./FeaturedCoverflow";
+import { FeaturedCoverflow } from "./FeaturedCoverOverflow";
 
 export default function FeaturedProducts() {
   const [page, setPage] = useState(1);
   const { products = [], hasMore, isLoading } = useFeaturedProducts(page, 5);
 
+  // Take up to 5 products as slides
   const featuredSlides = useMemo(
     () =>
-      products.map((p) => ({
+      products.slice(0, 5).map((p) => ({
         id: p.id,
         imageUrl: p.imageUrl,
         name: p.name,
@@ -20,8 +20,6 @@ export default function FeaturedProducts() {
       })),
     [products],
   );
-
-  const others = useMemo(() => products.slice(1), [products]);
 
   if (isLoading) {
     return (
@@ -54,11 +52,14 @@ export default function FeaturedProducts() {
             </h2>
 
             <p className="mt-3 max-w-xl text-sm leading-6 text-base-content/65 md:text-base">
-              Hand-picked items, cleaner layout, better balance, and smooth
-              hover motion.
+              Hand-picked items with smooth 3D coverflow interaction.
             </p>
+            <span className="mt-3 max-w-xl text-sm leading-6 text-base-content/65 md:text-base">
+              Click on a product to view details and click on other products to
+              navigate.
+            </span>
           </div>
-
+          {/* 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -79,88 +80,38 @@ export default function FeaturedProducts() {
             >
               <ChevronRight size={18} />
             </button>
-          </div>
+          </div> */}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-12">
-          {/* Left: 3D coverflow for featured slides */}
-          <div className="lg:col-span-6 rounded-3xl bg-base-200 shadow-lg">
-            <FeaturedCoverflow
-              slides={featuredSlides}
-              cardWidth={400}
-              cardHeight={400}
-              radius={3}
-              tilt={12}
-              sideTilt={8}
-              gap={8}
-              opacity={60}
-              autoplay={false}
-              autoplayDirection="rightToLeft"
-              showTitle={true}
-              titleFont={{
-                fontFamily: "Inter, system-ui, sans-serif",
-                fontSize: "22px",
-                letterSpacing: "-0.02em",
-                lineHeight: "1.1em",
-              }}
-              titleColor="#ffffff"
-              titlePosition={{
-                position: "bottomLeft",
-                paddingLeft: 22,
-                paddingRight: 22,
-                paddingTop: 24,
-                paddingBottom: 24,
-              }}
-            />
-          </div>
-
-          {/* Right: your “others” list stays similar */}
-          <div className="grid gap-6 sm:grid-cols-2 auto-rows-fr lg:col-span-6">
-            {others.map((product) => (
-              <Link
-                to={`/product/${product.slug}`}
-                key={product.id}
-                className="group flex h-full flex-col overflow-hidden rounded-3xl border border-base-300 bg-base-100 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.name}
-                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
-                  <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-base-content backdrop-blur">
-                    Curated
-                  </div>
-                </div>
-
-                <div className="flex flex-1 flex-col p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="badge badge-success">Recommended</span>
-                    <span className="text-sm font-bold text-primary">
-                      NPR {(product.priceCents / 100).toLocaleString()}
-                    </span>
-                  </div>
-
-                  <h4 className="mt-3 line-clamp-1 text-xl font-semibold text-base-content group-hover:text-primary">
-                    {product.name}
-                  </h4>
-
-                  <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-base-content/65">
-                    {product.description}
-                  </p>
-
-                  <div className="mt-5 flex items-center justify-between text-sm">
-                    <span className="text-base-content/50">View details</span>
-                    <ArrowRight
-                      size={18}
-                      className="text-primary transition group-hover:translate-x-1"
-                    />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+        {/* Single coverflow section */}
+        <div className="rounded-3xl bg-base-200 shadow-lg px-4 py-8 flex justify-center">
+          <FeaturedCoverflow
+            slides={featuredSlides}
+            cardWidth={400}
+            cardHeight={400}
+            radius={3}
+            tilt={12}
+            sideTilt={8}
+            gap={8}
+            opacity={60}
+            autoplay={false}
+            autoplayDirection="rightToLeft"
+            showTitle={true}
+            titleFont={{
+              fontFamily: "Inter, system-ui, sans-serif",
+              fontSize: "22px",
+              letterSpacing: "-0.02em",
+              lineHeight: "1.1em",
+            }}
+            titleColor="#ffffff"
+            titlePosition={{
+              position: "bottomLeft",
+              paddingLeft: 22,
+              paddingRight: 22,
+              paddingTop: 24,
+              paddingBottom: 24,
+            }}
+          />
         </div>
       </div>
     </section>

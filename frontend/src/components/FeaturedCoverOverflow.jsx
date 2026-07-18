@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 const PERSPECTIVE = 1600;
 const SCALE_STEP = 0.16;
 const MAX_VISIBLE = 2;
 const DEPTH = 240;
 
-// Small helper: convert “radius 0–20” to actual px.
 function getEffectiveRadius(radius, cardWidth, cardHeight) {
   const r = Math.max(0, Math.min(20, radius));
   return (r / 20) * (Math.min(cardWidth, cardHeight) / 2);
 }
 
-export function FeaturedCoverflow() {
+export function FeaturedCoverflow(props) {
   const {
     slides,
     cardWidth = 400,
@@ -32,6 +32,8 @@ export function FeaturedCoverflow() {
     style,
   } = props;
 
+  const navigate = useNavigate();
+
   const tp = titlePosition || {};
   const corner = tp.position || "bottomLeft";
   const isTop = corner === "topLeft" || corner === "topRight";
@@ -41,13 +43,13 @@ export function FeaturedCoverflow() {
   const padTop = tp.paddingTop ?? 24;
   const padBottom = tp.paddingBottom ?? 24;
 
-  const list = slides;
+  const list = slides || [];
   const n = list.length;
 
   const [active, setActive] = useState(0);
   const moveDur = 0.6;
-
   const lockRef = useRef(false);
+
   const lock = useCallback(() => {
     lockRef.current = true;
     window.setTimeout(
@@ -67,16 +69,6 @@ export function FeaturedCoverflow() {
     [n, lock],
   );
 
-  const handleCardClick = useCallback(
-    (i) => {
-      if (autoplay || lockRef.current) return;
-      lock();
-      setActive((a) => (i === a ? (a + 1) % n : i));
-    },
-    [autoplay, n, lock],
-  );
-
-  // Autoplay
   const delay = 2.5;
   useEffect(() => {
     if (!autoplay || n < 2) return;
@@ -166,20 +158,30 @@ export function FeaturedCoverflow() {
             transform: `translate(-50%, -50%) translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${sc})`,
             transition: transitionCss,
             opacity: visible ? 1 : 0,
-            cursor: autoplay || isActive ? "default" : "pointer",
-            pointerEvents: visible && !autoplay ? "auto" : "none",
+            cursor: "pointer",
+            pointerEvents: visible ? "auto" : "none",
             backgroundColor: "#1a1a1a",
+          };
+
+          const handleClick = () => {
+            if (!isActive) {
+              // First click: bring card to center
+              lock();
+              setActive(i);
+            } else {
+              // Second click on centered card: navigate to product page
+              navigate(`/product/${slide.slug}`);
+            }
           };
 
           return (
             <div
               key={slide.id}
               style={cardStyle}
-              onClick={() => handleCardClick(i)}
+              onClick={handleClick}
               aria-label={slide.name}
               aria-hidden={!visible}
             >
-              {/* Product image */}
               <img
                 src={slide.imageUrl}
                 alt={slide.name}
@@ -195,7 +197,6 @@ export function FeaturedCoverflow() {
                 }}
               />
 
-              {/* Title / info overlay */}
               {showTitle && (
                 <>
                   <div
@@ -208,7 +209,6 @@ export function FeaturedCoverflow() {
                       pointerEvents: "none",
                     }}
                   />
-
                   <div
                     style={{
                       position: "absolute",
@@ -257,7 +257,6 @@ export function FeaturedCoverflow() {
                 </>
               )}
 
-              {/* Dim overlay */}
               <div
                 style={{
                   position: "absolute",
