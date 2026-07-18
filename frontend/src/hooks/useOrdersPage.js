@@ -17,7 +17,8 @@ function useOrdersPage() {
     enabled: isSignedIn,
   });
 
-  const staff = meData?.user?.role === "support" || meData?.user?.role === "admin";
+  const staff =
+    meData?.user?.role === "support" || meData?.user?.role === "admin";
 
   const orders = data?.orders ?? [];
 

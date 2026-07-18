@@ -56,6 +56,7 @@ async function fulfillCheckoutSession(
       .values({
         userId: session.userId,
         status: "paid",
+        shippingAddress: session.shippingAddress ?? null,
         totalCents: session.totalCents,
         polarCheckoutId: checkoutId ?? session.polarCheckoutId ?? null,
         ...(polarOrderId ? { polarOrderId } : {}),
@@ -88,8 +89,11 @@ export async function polarWebhookHandler(req: Request, res: Response) {
       return;
     }
 
-    const raw = req.body instanceof Buffer ? req.body : Buffer.from(String(req.body));
-    const wh = new Webhook(Buffer.from(env.POLAR_WEBHOOK_SECRET, "utf8").toString("base64"));
+    const raw =
+      req.body instanceof Buffer ? req.body : Buffer.from(String(req.body));
+    const wh = new Webhook(
+      Buffer.from(env.POLAR_WEBHOOK_SECRET, "utf8").toString("base64"),
+    );
 
     const id = headerString(req.headers, "webhook-id");
     const ts = headerString(req.headers, "webhook-timestamp");
@@ -100,7 +104,11 @@ export async function polarWebhookHandler(req: Request, res: Response) {
       return;
     }
 
-    wh.verify(raw, { "webhook-id": id, "webhook-timestamp": ts, "webhook-signature": sig });
+    wh.verify(raw, {
+      "webhook-id": id,
+      "webhook-timestamp": ts,
+      "webhook-signature": sig,
+    });
 
     const event = JSON.parse(raw.toString("utf8")) as {
       type: string;
@@ -110,7 +118,8 @@ export async function polarWebhookHandler(req: Request, res: Response) {
     if (event.type === "order.paid" && event.data) {
       const data = event.data;
       const polarOrderId = typeof data.id === "string" ? data.id : undefined;
-      const checkoutId = typeof data.checkout_id === "string" ? data.checkout_id : undefined;
+      const checkoutId =
+        typeof data.checkout_id === "string" ? data.checkout_id : undefined;
 
       if (await alreadyPaid(polarOrderId, checkoutId)) {
         res.json({ ok: true, duplicate: true });
@@ -120,7 +129,11 @@ export async function polarWebhookHandler(req: Request, res: Response) {
       const sessionId = checkoutSessionIdFromMetadata(data);
 
       if (sessionId) {
-        const ok = await fulfillCheckoutSession(sessionId, polarOrderId, checkoutId);
+        const ok = await fulfillCheckoutSession(
+          sessionId,
+          polarOrderId,
+          checkoutId,
+        );
 
         if (ok) {
           res.json({ ok: true });

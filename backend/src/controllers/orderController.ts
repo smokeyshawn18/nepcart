@@ -5,12 +5,20 @@ import { isStaff } from "../lib/roles";
 import { db } from "../db";
 import { orderItems, orders, products, users } from "../db/schema";
 import { asc, desc, eq, inArray } from "drizzle-orm";
-import { getStreamChatServer, streamChatDisplayName, streamUserId } from "../lib/stream";
+import {
+  getStreamChatServer,
+  streamChatDisplayName,
+  streamUserId,
+} from "../lib/stream";
 import { getEnv } from "../lib/env";
 
 const env = getEnv();
 
-export async function listOrders(req: Request, res: Response, next: NextFunction) {
+export async function listOrders(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { userId, isAuthenticated } = getAuth(req);
     if (!isAuthenticated || !userId) {
@@ -72,7 +80,11 @@ export async function listOrders(req: Request, res: Response, next: NextFunction
   }
 }
 
-export async function getOrder(req: Request, res: Response, next: NextFunction) {
+export async function getOrder(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { userId, isAuthenticated } = getAuth(req);
     if (!isAuthenticated || !userId) {
@@ -120,7 +132,62 @@ export async function getOrder(req: Request, res: Response, next: NextFunction) 
   }
 }
 
-export async function createStreamChannel(req: Request, res: Response, next: NextFunction) {
+export async function cancelOrder(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { userId, isAuthenticated } = getAuth(req);
+    if (!isAuthenticated || !userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const localUser = await getLocalUser(userId);
+    if (!localUser) {
+      res.status(503).json({ error: "Account not synced yet" });
+      return;
+    }
+
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, req.params.id as string))
+      .limit(1);
+
+    if (!order) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+
+    if (order.userId !== localUser.id) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+
+    if (order.paymentMethod !== "cod" || order.status !== "pending") {
+      res.status(400).json({ error: "This order cannot be cancelled" });
+      return;
+    }
+
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({ status: "cancelled", updatedAt: new Date() })
+      .where(eq(orders.id, order.id))
+      .returning();
+
+    res.json({ order: updatedOrder });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function createStreamChannel(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { userId, isAuthenticated } = getAuth(req);
     if (!isAuthenticated || !userId) {
@@ -153,16 +220,24 @@ export async function createStreamChannel(req: Request, res: Response, next: Nex
       return;
     }
 
-    if (order.status !== "paid") {
-      res.status(403).json({ error: "Order must be paid to open support chat" });
-      return;
+    const canOpenSupport =
+      order.status === "paid" || order.paymentMethod === "cod";
+
+    if (!canOpenSupport) {
+      return res.status(403).json({
+        error: "Payment required before opening support.",
+      });
     }
 
     const streamChatUserId = streamUserId(userId);
 
     await server.upsertUser({
       id: streamChatUserId,
-      name: streamChatDisplayName(localUser.role, localUser.displayName, localUser.email),
+      name: streamChatDisplayName(
+        localUser.role,
+        localUser.displayName,
+        localUser.email,
+      ),
     });
 
     const channelId = `order-${order.id}`;
@@ -175,13 +250,21 @@ export async function createStreamChannel(req: Request, res: Response, next: Nex
 
     await channel.addMembers([streamChatUserId]);
 
-    res.json({ channelType: "messaging", channelId, streamUserId: streamChatUserId });
+    res.json({
+      channelType: "messaging",
+      channelId,
+      streamUserId: streamChatUserId,
+    });
   } catch (e) {
     next(e);
   }
 }
 
-export async function createVideoInvite(req: Request, res: Response, next: NextFunction) {
+export async function createVideoInvite(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const { userId, isAuthenticated } = getAuth(req);
     if (!isAuthenticated || !userId) {
@@ -198,7 +281,9 @@ export async function createVideoInvite(req: Request, res: Response, next: NextF
     }
 
     if (!isStaff(localUser.role)) {
-      res.status(403).json({ error: "Only support or admin can send a video invite" });
+      res
+        .status(403)
+        .json({ error: "Only support or admin can send a video invite" });
       return;
     }
 
@@ -213,7 +298,11 @@ export async function createVideoInvite(req: Request, res: Response, next: NextF
       return;
     }
 
-    const [owner] = await db.select().from(users).where(eq(users.id, order.userId)).limit(1);
+    const [owner] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, order.userId))
+      .limit(1);
 
     const customerSid = streamUserId(owner.clerkUserId);
     await server.upsertUser({
@@ -224,7 +313,11 @@ export async function createVideoInvite(req: Request, res: Response, next: NextF
     const staffStreamUserId = streamUserId(userId);
     await server.upsertUser({
       id: staffStreamUserId,
-      name: streamChatDisplayName(localUser.role, localUser.displayName, localUser.email),
+      name: streamChatDisplayName(
+        localUser.role,
+        localUser.displayName,
+        localUser.email,
+      ),
     });
 
     const channelId = `order-${order.id}`;

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createStreamToken } from "../controllers/streamController";
 
-const router = Router();
+const router: Router = Router();
 
 router.post("/token", createStreamToken);
 

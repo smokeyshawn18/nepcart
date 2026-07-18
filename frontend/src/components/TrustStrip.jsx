@@ -1,4 +1,9 @@
-import { CreditCardIcon, HeadphonesIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
+import {
+  CreditCardIcon,
+  HeadphonesIcon,
+  ShieldCheckIcon,
+  TruckIcon,
+} from "lucide-react";
 
 const items = [
   {
@@ -14,7 +19,7 @@ const items = [
   {
     icon: CreditCardIcon,
     title: "Transparent",
-    desc: "Prices in USD, tax where applicable",
+    desc: "Prices in NPR, tax where applicable",
   },
   {
     icon: HeadphonesIcon,

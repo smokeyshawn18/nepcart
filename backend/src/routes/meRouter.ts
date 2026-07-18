@@ -2,7 +2,7 @@ import { getAuth } from "@clerk/express";
 import { Router } from "express";
 import { getLocalUser } from "../lib/users";
 
-const router = Router();
+const router: Router = Router();
 
 router.get("/", async (req, res, next) => {
   try {

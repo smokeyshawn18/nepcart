@@ -4,10 +4,21 @@ import { useCart } from "../store/cart";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../lib/api";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 export default function useCartPage() {
   const { getToken } = useAuth();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [shippingAddress, setShippingAddress] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    region: "",
+    country: "",
+    notes: "",
+  });
 
   const items = useCart((s) => s.items);
   const setQty = useCart((s) => s.setQty);
@@ -18,9 +29,15 @@ export default function useCartPage() {
     isLoading: productsLoading,
     isError: productsError,
   } = useQuery({
-    queryKey: ["products"],
-    queryFn: () => apiFetch("/api/products"),
+    queryKey: ["cart-products", items],
     enabled: items.length > 0,
+    queryFn: () =>
+      apiFetch("/api/products/by-ids", {
+        method: "POST",
+        body: {
+          ids: items.map((item) => item.productId),
+        },
+      }),
   });
 
   const products = data?.products ?? [];
@@ -35,25 +52,50 @@ export default function useCartPage() {
     return sum + p.priceCents * line.quantity;
   }, 0);
 
-  async function checkout() {
+  async function checkout(paymentMethod = "polar") {
     setCheckoutLoading(true);
 
-    const body = {
-      items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-    };
+    try {
+      const normalizedShippingAddress = Object.fromEntries(
+        Object.entries(shippingAddress).filter(([, value]) => value !== ""),
+      );
 
-    const res = await apiFetch("/api/checkout", {
-      getToken,
-      method: "POST",
-      body,
-    });
+      const body = {
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+        })),
+        paymentMethod,
+        ...(paymentMethod === "cod" ||
+        Object.keys(normalizedShippingAddress).length > 0
+          ? {
+              shippingAddress: normalizedShippingAddress,
+            }
+          : {}),
+      };
 
-    if (res?.checkoutUrl) {
-      window.location.href = res.checkoutUrl;
-      return;
+      const res = await apiFetch("/api/checkout", {
+        getToken,
+        method: "POST",
+        body,
+      });
+
+      if (res?.checkoutUrl) {
+        window.location.href = res.checkoutUrl;
+        return;
+      }
+
+      if (res?.orderId) {
+        window.location.href = `/orders/${res.orderId}`;
+        return;
+      }
+
+      throw new Error("Unable to start checkout");
+    } catch (error) {
+      toast.error(error.message || "Could not start checkout");
+    } finally {
+      setCheckoutLoading(false);
     }
-
-    setCheckoutLoading(false);
   }
 
   return {
@@ -66,5 +108,7 @@ export default function useCartPage() {
     subtotal,
     checkout,
     checkoutLoading,
+    shippingAddress,
+    setShippingAddress,
   };
 }

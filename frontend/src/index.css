@@ -2,5 +2,11 @@
 /* @plugin "daisyui"; */
 
 @plugin "daisyui" {
-  themes: lofi --default;
+  themes: silk --default;
+}
+
+body {
+  font-family: "Alata", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }

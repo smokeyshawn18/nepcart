@@ -1,4 +1,5 @@
 import {
+  Coins,
   HeadphonesIcon,
   LogInIcon,
   MinusIcon,
@@ -26,6 +27,8 @@ function CartPage() {
     removeItem,
     setQty,
     subtotal,
+    shippingAddress,
+    setShippingAddress,
   } = useCartPage();
 
   return (
@@ -52,7 +55,10 @@ function CartPage() {
                 <figure className="p-4">
                   {p?.imageUrl ? (
                     <img
-                      src={imageKitOptimizedUrl(p.imageUrl, IK_PRESETS.cartThumb)}
+                      src={imageKitOptimizedUrl(
+                        p.imageUrl,
+                        IK_PRESETS.cartThumb,
+                      )}
                       alt=""
                       className="h-24 w-24 rounded-box object-cover"
                       loading="lazy"
@@ -66,7 +72,10 @@ function CartPage() {
                   <div className="min-w-0 flex-1">
                     <div className="card-title text-base">
                       {p ? (
-                        <Link to={`/product/${p.slug}`} className="link-hover link-primary">
+                        <Link
+                          to={`/product/${p.slug}`}
+                          className="link-hover link-primary"
+                        >
                           {p.name}
                         </Link>
                       ) : (
@@ -84,8 +93,14 @@ function CartPage() {
                         <button
                           type="button"
                           className="btn btn-sm join-item gap-0 px-2.5"
-                          onClick={() => setQty(line.productId, line.quantity - 1)}
-                          aria-label={line.quantity <= 1 ? "Remove from cart" : "Decrease quantity"}
+                          onClick={() =>
+                            setQty(line.productId, line.quantity - 1)
+                          }
+                          aria-label={
+                            line.quantity <= 1
+                              ? "Remove from cart"
+                              : "Decrease quantity"
+                          }
                         >
                           <MinusIcon className="size-4" aria-hidden />
                         </button>
@@ -98,7 +113,12 @@ function CartPage() {
                         <button
                           type="button"
                           className="btn btn-sm join-item gap-0 px-2.5"
-                          onClick={() => setQty(line.productId, Math.min(99, line.quantity + 1))}
+                          onClick={() =>
+                            setQty(
+                              line.productId,
+                              Math.min(99, line.quantity + 1),
+                            )
+                          }
                           disabled={line.quantity >= 99}
                           aria-label="Increase quantity"
                         >
@@ -117,7 +137,9 @@ function CartPage() {
                     </div>
                   </div>
                   <div className="text-right font-semibold text-base-content">
-                    {p ? formatPrice(p.priceCents * line.quantity, p.currency) : "-"}
+                    {p
+                      ? formatPrice(p.priceCents * line.quantity, p.currency)
+                      : "-"}
                   </div>
                 </div>
               </li>
@@ -135,23 +157,139 @@ function CartPage() {
             <Show when="signed-in">
               <button
                 type="button"
-                onClick={checkout}
+                onClick={() => checkout("polar")}
                 disabled={checkoutLoading}
                 aria-busy={checkoutLoading}
                 className="btn btn-primary mt-6 w-full gap-2"
               >
                 {checkoutLoading ? (
-                  <span className="loading loading-spinner loading-sm" aria-hidden />
+                  <span
+                    className="loading loading-spinner loading-sm"
+                    aria-hidden
+                  />
                 ) : (
                   <ShoppingCartIcon className="size-4" aria-hidden />
                 )}
                 {checkoutLoading ? "Opening checkout…" : "Checkout securely"}
               </button>
+              <span className="text-center mt-2">Or</span>
+              <div className="mt-4 rounded-box border border-base-300 bg-base-200/50 p-4 text-sm">
+                <p className="mb-3 font-semibold text-base-content">
+                  Fill Shipping details and click on Cash on Delivery to place
+                  your order. You can pay in cash when the product is delivered
+                  to you.
+                </p>
+                <div className="space-y-3">
+                  <input
+                    className="input input-bordered input-sm w-full"
+                    placeholder="Full name"
+                    value={shippingAddress.name}
+                    onChange={(event) =>
+                      setShippingAddress((current) => ({
+                        ...current,
+                        name: event.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    className="input input-bordered input-sm w-full"
+                    placeholder="Phone number"
+                    value={shippingAddress.phone}
+                    onChange={(event) =>
+                      setShippingAddress((current) => ({
+                        ...current,
+                        phone: event.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    className="input input-bordered input-sm w-full"
+                    placeholder="Address"
+                    value={shippingAddress.address}
+                    onChange={(event) =>
+                      setShippingAddress((current) => ({
+                        ...current,
+                        address: event.target.value,
+                      }))
+                    }
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      className="input input-bordered input-sm w-full"
+                      placeholder="City"
+                      value={shippingAddress.city}
+                      onChange={(event) =>
+                        setShippingAddress((current) => ({
+                          ...current,
+                          city: event.target.value,
+                        }))
+                      }
+                    />
+                    <input
+                      className="input input-bordered input-sm w-full"
+                      placeholder="Postal code"
+                      value={shippingAddress.postalCode}
+                      onChange={(event) =>
+                        setShippingAddress((current) => ({
+                          ...current,
+                          postalCode: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <input
+                    className="input input-bordered input-sm w-full"
+                    placeholder="Region"
+                    value={shippingAddress.region}
+                    onChange={(event) =>
+                      setShippingAddress((current) => ({
+                        ...current,
+                        region: event.target.value,
+                      }))
+                    }
+                  />
+                  <input
+                    className="input input-bordered input-sm w-full"
+                    placeholder="Country"
+                    value={shippingAddress.country}
+                    onChange={(event) =>
+                      setShippingAddress((current) => ({
+                        ...current,
+                        country: event.target.value,
+                      }))
+                    }
+                  />
+                  <textarea
+                    className="textarea textarea-bordered textarea-sm w-full"
+                    placeholder="Delivery notes"
+                    value={shippingAddress.notes}
+                    onChange={(event) =>
+                      setShippingAddress((current) => ({
+                        ...current,
+                        notes: event.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => checkout("cod")}
+                disabled={checkoutLoading}
+                aria-busy={checkoutLoading}
+                className="btn btn-outline btn-primary mt-6 w-full gap-2"
+              >
+                <Coins className="size-4" aria-hidden />
+                Cash on Delivery
+              </button>
             </Show>
 
             <Show when="signed-out">
               <SignInButton mode="modal">
-                <button type="button" className="btn btn-outline btn-primary mt-6 w-full gap-2">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-primary mt-6 w-full gap-2"
+                >
                   <LogInIcon className="size-4" aria-hidden />
                   Sign in to checkout
                 </button>
@@ -159,11 +297,14 @@ function CartPage() {
             </Show>
 
             <p className="mt-4 flex items-start gap-2 text-xs text-base-content/60">
-              <HeadphonesIcon className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
+              <HeadphonesIcon
+                className="mt-0.5 size-3.5 shrink-0 text-primary"
+                aria-hidden
+              />
               <span>
                 After payment, open your order for{" "}
-                <strong className="text-base-content">support chat</strong>. Video invites appear in
-                that thread.
+                <strong className="text-base-content">support chat</strong>.
+                Video invites appear in that thread.
               </span>
             </p>
           </aside>

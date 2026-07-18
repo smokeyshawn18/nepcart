@@ -3,7 +3,9 @@ import { z } from "zod";
 // .coerce.number() means it will convert the string to a number if it's a string
 
 const envSchema = z.object({
-  NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
   PORT: z.coerce.number().default(3001),
   DATABASE_URL: z.string().min(1),
 
@@ -16,6 +18,7 @@ const envSchema = z.object({
   POLAR_ACCESS_TOKEN: z.string().optional(),
   POLAR_WEBHOOK_SECRET: z.string().optional(),
   POLAR_API_BASE: z.string().url().default("https://api.polar.sh"),
+  POLAR_PRESENTMENT_CURRENCY: z.string().optional(),
 
   POLAR_CHECKOUT_PRODUCT_ID: z.string().uuid(),
 

@@ -2,10 +2,21 @@ import { Link } from "react-router";
 import { ProductPageSkeleton } from "../components/LoadingSkeletons";
 import { PageError } from "../components/PageError";
 import { useProductPage } from "../hooks/useProductPage";
-import { IK_PRESETS, imageKitOptimizedUrl, imageKitWatermarkedUrl } from "../lib/imagekitUrl";
+import {
+  IK_PRESETS,
+  imageKitOptimizedUrl,
+  imageKitWatermarkedUrl,
+} from "../lib/imagekitUrl";
 import { useCart } from "../store/cart";
-import { ArrowLeftIcon, CheckIcon, ExternalLinkIcon, ShoppingCartIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  ExternalLinkIcon,
+  ShoppingCartIcon,
+} from "lucide-react";
 import { formatPrice } from "../utils/format";
+import { useEffect } from "react";
+import ScrollToTop from "../lib/scroll";
 
 const HIGHLIGHTS = [
   "Secure checkout",
@@ -20,7 +31,12 @@ function ProductDetailPage() {
   if (isLoading) return <ProductPageSkeleton />;
 
   if (error || !product) {
-    return <PageError message="Product not found." action={{ to: "/", label: "Back to shop" }} />;
+    return (
+      <PageError
+        message="Product not found."
+        action={{ to: "/", label: "Back to shop" }}
+      />
+    );
   }
 
   const p = product;
@@ -31,13 +47,16 @@ function ProductDetailPage() {
 
   return (
     <div>
+      <ScrollToTop />
       <nav className="breadcrumbs text-sm text-base-content/60">
         <ul>
           <li>
             <Link to="/">Shop</Link>
           </li>
           <li>
-            <Link to={`/?category=${encodeURIComponent(category)}`}>{category}</Link>
+            <Link to={`/?category=${encodeURIComponent(category)}`}>
+              {category}
+            </Link>
           </li>
           <li className="text-base-content">{p.name}</li>
         </ul>
@@ -76,8 +95,12 @@ function ProductDetailPage() {
 
         <div className="flex flex-col text-left">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="badge badge-primary badge-outline">{category}</span>
-            <span className="text-xs font-mono text-base-content/45">{p.slug}</span>
+            <span className="badge badge-primary badge-outline">
+              {category}
+            </span>
+            <span className="text-xs font-mono text-base-content/45">
+              {p.slug}
+            </span>
           </div>
 
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-base-content md:text-4xl">
@@ -88,12 +111,17 @@ function ProductDetailPage() {
             {formatPrice(p.priceCents, p.currency)}
           </p>
 
-          <p className="mt-6 text-base leading-relaxed text-base-content/85">{p.description}</p>
+          <p className="mt-6 text-base leading-relaxed text-base-content/85">
+            {p.description}
+          </p>
 
           <ul className="mt-6 space-y-2 rounded-box border border-base-300 bg-base-200/50 p-4">
             {HIGHLIGHTS.map((h) => (
-              <li key={h} className="flex items-center gap-2 text-sm text-base-content/80">
-                <CheckIcon className="size-4 shrink-0 text-success" aria-hidden />
+              <li
+                key={h}
+                className="flex items-center gap-2 text-sm text-semibold-content/80"
+              >
+                <CheckIcon className="size-4 shrink-0 " aria-hidden />
                 {h}
               </li>
             ))}
@@ -109,7 +137,10 @@ function ProductDetailPage() {
               Add to cart
             </button>
 
-            <Link to="/" className="btn btn-ghost btn-lg gap-2 border border-base-300">
+            <Link
+              to="/"
+              className="btn btn-ghost btn-lg gap-2 border border-base-300"
+            >
               <ArrowLeftIcon className="size-4" aria-hidden />
               Continue shopping
             </Link>

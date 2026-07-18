@@ -21,7 +21,10 @@ function OrdersPage() {
 
   if (error) {
     return (
-      <PageError message="Could not load orders." action={{ to: "/", label: "Back to shop" }} />
+      <PageError
+        message="Could not load orders."
+        action={{ to: "/", label: "Back to shop" }}
+      />
     );
   }
 
@@ -49,7 +52,10 @@ function OrdersPage() {
         <ul className="space-y-4">
           {orders.map((o) => {
             const previewItems = o.previewItems ?? [];
-            const totalUnits = previewItems.reduce((sum, row) => sum + row.quantity, 0);
+            const totalUnits = previewItems.reduce(
+              (sum, row) => sum + row.quantity,
+              0,
+            );
             const lineCount = previewItems.length;
             const summary =
               lineCount === 0
@@ -79,7 +85,9 @@ function OrdersPage() {
                               ? "badge-success"
                               : o.status === "pending"
                                 ? "badge-warning"
-                                : "badge-error"
+                                : o.status === "delivered"
+                                  ? "badge-info"
+                                  : "badge-error"
                           }`}
                         >
                           {o.status}
@@ -90,7 +98,9 @@ function OrdersPage() {
                         {formatOrderWhen(o.createdAt)}
                       </p>
 
-                      <p className="mt-2 text-sm text-base-content/75">{summary}</p>
+                      <p className="mt-2 text-sm text-base-content/75">
+                        {summary}
+                      </p>
                     </div>
 
                     <div className="flex shrink-0 items-center gap-3">
@@ -99,7 +109,7 @@ function OrdersPage() {
                           Total
                         </p>
                         <p className="text-lg font-bold tabular-nums text-base-content sm:text-xl">
-                          {formatPrice(o.totalCents, "usd")}
+                          {formatPrice(o.totalCents, "npr")}
                         </p>
                       </div>
                       <ChevronRightIcon

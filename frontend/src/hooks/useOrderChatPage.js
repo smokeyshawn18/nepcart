@@ -1,3 +1,4 @@
+// useOrderChatPage.js
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -8,7 +9,9 @@ import { useAuth } from "@clerk/react";
 export function useOrderChatPage() {
   const { id } = useParams();
   const { getToken, isSignedIn } = useAuth();
-  const { paid } = useOutletContext();
+
+  // must match the shape you passed from Outlet
+  const { paid, canOpenSupport } = useOutletContext();
 
   const [client, setClient] = useState(null);
   const [error, setError] = useState(null);
@@ -22,25 +25,38 @@ export function useOrderChatPage() {
   const role = meData?.user?.role;
 
   const inviteMutation = useMutation({
-    mutationFn: () => apiFetch(`/api/orders/${id}/video-invite`, { getToken, method: "POST" }),
+    mutationFn: () =>
+      apiFetch(`/api/orders/${id}/video-invite`, {
+        getToken,
+        method: "POST",
+      }),
   });
 
   useEffect(() => {
-    if (!paid || !id) return undefined;
+    // use canOpenSupport instead of paid
+    if (!canOpenSupport || !id) return undefined;
 
     let chatClient;
 
     async function connectOrderChat() {
-      await apiFetch(`/api/orders/${id}/stream-channel`, { method: "POST", getToken });
+      await apiFetch(`/api/orders/${id}/stream-channel`, {
+        method: "POST",
+        getToken,
+      });
 
-      const token = await apiFetch("/api/stream/token", { getToken, method: "POST" });
+      const token = await apiFetch("/api/stream/token", {
+        getToken,
+        method: "POST",
+      });
 
       chatClient = StreamChat.getInstance(token.apiKey);
 
-      await chatClient.connectUser({ id: token.userId, name: token.name }, token.token);
+      await chatClient.connectUser(
+        { id: token.userId, name: token.name },
+        token.token,
+      );
 
       const channel = chatClient.channel("messaging", `order-${id}`);
-
       await channel.watch();
       setClient(chatClient);
     }
@@ -54,10 +70,19 @@ export function useOrderChatPage() {
         chatClient.disconnectUser();
       }
     };
-  }, [paid, id, getToken]);
+  }, [canOpenSupport, id, getToken]);
 
-  const channel = client && id ? client.channel("messaging", `order-${id}`) : null;
+  const channel =
+    client && id ? client.channel("messaging", `order-${id}`) : null;
   const canInvite = role === "support" || role === "admin";
 
-  return { paid, client, error, channel, canInvite, inviteMutation };
+  return {
+    paid,
+    client,
+    error,
+    channel,
+    canInvite,
+    inviteMutation,
+    canOpenSupport,
+  };
 }

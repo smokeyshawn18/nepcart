@@ -14,7 +14,8 @@ function OrderSummaryPage() {
           Line items
         </h2>
         <p className="mt-1 text-sm text-base-content/60">
-          {items.length} {items.length === 1 ? "product" : "products"} in this order
+          {items.length} {items.length === 1 ? "product" : "products"} in this
+          order
         </p>
       </div>
 
@@ -30,7 +31,10 @@ function OrderSummaryPage() {
                   <div className="h-24 w-24 sm:h-28 sm:w-28">
                     {row.product.imageUrl ? (
                       <img
-                        src={imageKitOptimizedUrl(row.product.imageUrl, IK_PRESETS.orderLineThumb)}
+                        src={imageKitOptimizedUrl(
+                          row.product.imageUrl,
+                          IK_PRESETS.orderLineThumb,
+                        )}
                         alt=""
                         className="h-full w-full object-cover transition duration-300 group-hover/img:scale-[1.03]"
                         loading="lazy"
@@ -38,7 +42,10 @@ function OrderSummaryPage() {
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-base-300 to-base-200">
-                        <PackageIcon className="size-10 text-base-content/30" aria-hidden />
+                        <PackageIcon
+                          className="size-10 text-base-content/30"
+                          aria-hidden
+                        />
                       </div>
                     )}
                   </div>
@@ -52,12 +59,17 @@ function OrderSummaryPage() {
                     {row.product.name}
                   </Link>
                   {row.product.category ? (
-                    <p className="mt-1 text-sm text-base-content/55">{row.product.category}</p>
+                    <p className="mt-1 text-sm text-base-content/55">
+                      {row.product.category}
+                    </p>
                   ) : null}
                   <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-base-content/65">
                     <span>Qty {row.quantity}</span>
                     <span className="text-base-content/40">·</span>
-                    <span>{formatPrice(row.unitPriceCents, row.product.currency)} each</span>
+                    <span>
+                      {formatPrice(row.unitPriceCents, row.product.currency)}{" "}
+                      each
+                    </span>
                   </div>
                 </div>
               </div>
@@ -67,7 +79,10 @@ function OrderSummaryPage() {
                   Subtotal
                 </span>
                 <span className="text-xl font-bold tabular-nums text-base-content">
-                  {formatPrice(row.unitPriceCents * row.quantity, row.product.currency)}
+                  {formatPrice(
+                    row.unitPriceCents * row.quantity,
+                    row.product.currency,
+                  )}
                 </span>
               </div>
             </div>
@@ -75,11 +90,32 @@ function OrderSummaryPage() {
         ))}
       </ul>
 
-      <div className="flex items-center justify-between gap-4 border-t border-base-300 bg-base-200/50 px-5 py-5 sm:px-6">
-        <span className="text-lg font-semibold text-base-content">Total</span>
-        <span className="text-2xl font-bold tabular-nums text-primary">
-          {formatPrice(order.totalCents, "usd")}
-        </span>
+      <div className="border-t border-base-300 bg-base-200/50 px-5 py-5 sm:px-6">
+        {order.shippingAddress ? (
+          <div className="mb-4 rounded-box border border-base-300 bg-base-100 p-4 text-sm text-base-content/80">
+            <p className="mb-2 font-semibold text-base-content">
+              Shipping address
+            </p>
+            <p>{order.shippingAddress.name}</p>
+            <p>{order.shippingAddress.address}</p>
+            <p>
+              {order.shippingAddress.city}, {order.shippingAddress.postalCode}
+            </p>
+            {order.shippingAddress.phone ? (
+              <p>{order.shippingAddress.phone}</p>
+            ) : null}
+            {order.shippingAddress.notes ? (
+              <p>{order.shippingAddress.notes}</p>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-lg font-semibold text-base-content">Total</span>
+          <span className="text-2xl font-bold tabular-nums text-primary">
+            {formatPrice(order.totalCents, "npr")}
+          </span>
+        </div>
       </div>
     </div>
   );

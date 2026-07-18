@@ -2,16 +2,28 @@ import { useState } from "react";
 import { uploadImageToImageKit } from "../lib/imagekitUpload.js";
 import { IK_PRESETS, imageKitOptimizedUrl } from "../lib/imagekitUrl.js";
 
-export function AdminProductForm({ initial, saving, error, getToken, onCancel, onSubmit }) {
+export function AdminProductForm({
+  initial,
+  saving,
+  error,
+  getToken,
+  onCancel,
+  onSubmit,
+}) {
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [name, setName] = useState(initial?.name ?? "");
   const [category, setCategory] = useState(initial?.category ?? "General");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [priceCents, setPriceCents] = useState(initial ? String(initial.priceCents / 100) : "");
+  const [priceCents, setPriceCents] = useState(
+    initial ? String(initial.priceCents / 100) : "",
+  );
   const [currency, setCurrency] = useState(initial?.currency ?? "usd");
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
-  const [imageKitFileId, setImageKitFileId] = useState(initial?.imageKitFileId ?? "");
+  const [imageKitFileId, setImageKitFileId] = useState(
+    initial?.imageKitFileId ?? "",
+  );
   const [active, setActive] = useState(initial?.active ?? true);
+  const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadError, setUploadError] = useState(null);
 
@@ -30,20 +42,28 @@ export function AdminProductForm({ initial, saving, error, getToken, onCancel, o
       imageUrl: imageUrl.trim() || null,
       imageKitFileId: imageKitFileId.trim() || null,
       active,
+      featured,
     };
 
     if (initial) {
       const patch = {};
       if (body.name !== initial.name) patch.name = body.name;
-      if (body.category !== (initial.category ?? "General")) patch.category = body.category;
-      if (body.description !== initial.description) patch.description = body.description;
-      if (body.priceCents !== initial.priceCents) patch.priceCents = body.priceCents;
+      if (body.category !== (initial.category ?? "General"))
+        patch.category = body.category;
+      if (body.description !== initial.description)
+        patch.description = body.description;
+      if (body.priceCents !== initial.priceCents)
+        patch.priceCents = body.priceCents;
       if (body.currency !== initial.currency) patch.currency = body.currency;
-      if ((body.imageUrl ?? "") !== (initial.imageUrl ?? "")) patch.imageUrl = body.imageUrl;
+      if ((body.imageUrl ?? "") !== (initial.imageUrl ?? ""))
+        patch.imageUrl = body.imageUrl;
       if ((body.imageKitFileId ?? null) !== (initial.imageKitFileId ?? null)) {
         patch.imageKitFileId = body.imageKitFileId;
       }
       if (body.active !== initial.active) patch.active = body.active;
+      if (body.featured !== initial.featured) {
+        patch.featured = body.featured;
+      }
       if (Object.keys(patch).length === 0) {
         onCancel();
         return;
@@ -66,8 +86,12 @@ export function AdminProductForm({ initial, saving, error, getToken, onCancel, o
       return;
     }
 
-    const ext = file.name.includes(".") ? file.name.slice(file.name.lastIndexOf(".")) : ".jpg";
-    const base = (slug.trim() || "product").replace(/[^\w-]+/g, "-").slice(0, 80);
+    const ext = file.name.includes(".")
+      ? file.name.slice(file.name.lastIndexOf("."))
+      : ".jpg";
+    const base = (slug.trim() || "product")
+      .replace(/[^\w-]+/g, "-")
+      .slice(0, 80);
 
     setUploadingImage(true);
 
@@ -164,7 +188,9 @@ export function AdminProductForm({ initial, saving, error, getToken, onCancel, o
             )}
           </span>
 
-          <span className="text-xs text-base-content/60">PNG, JPG, WebP, GIF · max 10MB</span>
+          <span className="text-xs text-base-content/60">
+            PNG, JPG, WebP, GIF · max 10MB
+          </span>
 
           <input
             type="file"
@@ -176,7 +202,9 @@ export function AdminProductForm({ initial, saving, error, getToken, onCancel, o
         </label>
 
         <label className="label py-0">
-          <span className="label-text-alt text-base-content/60">Image URL (any HTTPS URL)</span>
+          <span className="label-text-alt text-base-content/60">
+            Image URL (any HTTPS URL)
+          </span>
         </label>
 
         <input
@@ -218,6 +246,16 @@ export function AdminProductForm({ initial, saving, error, getToken, onCancel, o
         <span className="label-text">Active in store</span>
       </label>
 
+      <label className="label cursor-pointer justify-start gap-3">
+        <input
+          type="checkbox"
+          className="toggle toggle-warning"
+          checked={featured}
+          onChange={(e) => setFeatured(e.target.checked)}
+        />
+        <span className="label-text">Featured Product</span>
+      </label>
+
       {error ? (
         <div role="alert" className="alert alert-error text-sm">
           Save failed (check slug unique &amp; fields).
@@ -228,8 +266,16 @@ export function AdminProductForm({ initial, saving, error, getToken, onCancel, o
         <button type="button" className="btn btn-ghost" onClick={onCancel}>
           Cancel
         </button>
-        <button type="submit" className="btn btn-primary" disabled={saving || uploadingImage}>
-          {saving ? <span className="loading loading-spinner loading-sm" /> : "Save"}
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={saving || uploadingImage}
+        >
+          {saving ? (
+            <span className="loading loading-spinner loading-sm" />
+          ) : (
+            "Save"
+          )}
         </button>
       </div>
     </form>
