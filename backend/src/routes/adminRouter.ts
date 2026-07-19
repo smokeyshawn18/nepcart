@@ -19,6 +19,7 @@ router.get("/products", listAdminProducts);
 router.post("/products", createAdminProduct);
 router.patch("/products/:id", updateAdminProduct);
 router.patch("/orders/:id", updateAdminOrder);
+
 router.delete("/products/:id", deleteAdminProduct);
 
 export default router;

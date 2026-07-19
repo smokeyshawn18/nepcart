@@ -33,7 +33,11 @@ export function useAdminProductsPage() {
           body,
         });
       }
-      return apiFetch("/api/admin/products", { getToken, method: "POST", body });
+      return apiFetch("/api/admin/products", {
+        getToken,
+        method: "POST",
+        body,
+      });
     },
 
     onSuccess: () => {
@@ -47,7 +51,10 @@ export function useAdminProductsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (productId) =>
-      apiFetch(`/api/admin/products/${productId}`, { getToken, method: "DELETE" }),
+      apiFetch(`/api/admin/products/${productId}`, {
+        getToken,
+        method: "DELETE",
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
