@@ -44,7 +44,7 @@ ENV PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
 
 # Install only production deps using lockfile
 COPY backend/package.json backend/pnpm-lock.yaml ./
-RUN pnpm install --prod --frozen-lockfile && pnpm cache clean --force
+RUN pnpm install --prod --frozen-lockfile && pnpm cache clean 
 
 # Copy compiled backend and built frontend
 COPY --from=backend-build /app/dist ./dist
