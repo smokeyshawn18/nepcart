@@ -2,7 +2,8 @@ import type { Request, Response, NextFunction } from "express";
 import { db } from "../db";
 import { products } from "../db/schema";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { redis } from "../db/redis";
+
+import { getCacheWithTTL, setCacheWithTTL } from "../lib/redishelpers";
 
 export async function listProducts(
   req: Request,
@@ -129,18 +130,15 @@ export async function listFeaturedProducts(
 
     const cacheKey = `featured-products:page:${page}:limit:${limit}`;
 
-    try {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        console.log("cache HIT", cacheKey);
-        return res.json(cached);
-      }
-    } catch (err) {
-      console.error("Redis GET error in listFeaturedProducts:", err);
+    // Use the helper
+    const cached = await getCacheWithTTL(cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
 
-    console.log("cache MISS", cacheKey);
+    // console.log(`❌ Cache MISS: ${cacheKey}`);
 
+    // Fetch from DB
     const whereClause = and(
       eq(products.active, true),
       eq(products.featured, true),
@@ -155,9 +153,7 @@ export async function listFeaturedProducts(
       .offset(offset);
 
     const count = await db
-      .select({
-        count: sql<number>`count(*)`,
-      })
+      .select({ count: sql<number>`count(*)` })
       .from(products)
       .where(whereClause);
 
@@ -171,15 +167,11 @@ export async function listFeaturedProducts(
       hasMore: offset + rows.length < total,
     };
 
-    try {
-      await redis.set(cacheKey, payload, { ex: 60 });
-    } catch (err) {
-      console.error("Redis SET error in listFeaturedProducts:", err);
-    }
+    // Cache for 1 hour
+    await setCacheWithTTL(cacheKey, payload, 3600);
 
     res.json(payload);
   } catch (e) {
-    console.error("listFeaturedProducts threw:", e);
     next(e);
   }
 }

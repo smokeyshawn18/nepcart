@@ -10,6 +10,11 @@ import { count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { deleteImageKitAsset } from "../lib/imagekit";
 
+import {
+  invalidateFeaturedProductsCache,
+  invalidateProductCaches,
+} from "../lib/redishelpers";
+
 const env = getEnv();
 
 const productCreate = z.object({
@@ -53,6 +58,8 @@ function buildProductUpdateSet(body: z.infer<typeof productPatch>) {
   if (body.featured !== undefined) data.featured = body.featured;
   return data;
 }
+
+// ============ MIDDLEWARE ============
 
 export async function requireAdmin(
   req: Request,
@@ -103,6 +110,8 @@ export function getImageKitAuth(
   }
 }
 
+// ============ PRODUCT CRUD ============
+
 export async function listAdminProducts(
   _req: Request,
   res: Response,
@@ -142,6 +151,15 @@ export async function createAdminProduct(
         imageKitFileId: imageKitFileId || null,
       })
       .returning();
+
+    // ✅ Use helper: Invalidate caches when new product is created
+    await invalidateProductCaches();
+
+    // If new product is featured, specifically invalidate featured cache
+    if (row.featured) {
+      await invalidateFeaturedProductsCache();
+    }
+
     res.status(201).json({ product: row });
   } catch (e) {
     next(e);
@@ -169,10 +187,23 @@ export async function updateAdminProduct(
       return;
     }
 
+    const productId = req.params.id as string;
+
+    // Get current product to check what's changing
+    const [currentProduct] = await db
+      .select({
+        featured: products.featured,
+        slug: products.slug,
+        active: products.active,
+      })
+      .from(products)
+      .where(eq(products.id, productId))
+      .limit(1);
+
     const [row] = await db
       .update(products)
       .set(data)
-      .where(eq(products.id, req.params.id as string))
+      .where(eq(products.id, productId))
       .returning();
 
     if (!row) {
@@ -180,11 +211,78 @@ export async function updateAdminProduct(
       return;
     }
 
+    // ✅ Use helpers: Check what changed and invalidate accordingly
+    const featuredChanged =
+      "featured" in data && data.featured !== currentProduct?.featured;
+    const activeChanged =
+      "active" in data && data.active !== currentProduct?.active;
+    const slugChanged = currentProduct && currentProduct.slug !== row.slug;
+
+    if (featuredChanged) {
+      // If featured status changed, clear featured cache
+      await invalidateFeaturedProductsCache();
+    }
+
+    if (featuredChanged || activeChanged || slugChanged) {
+      // If important fields changed, clear all product caches
+      await invalidateProductCaches(productId, row.slug);
+    }
+
     res.json({ product: row });
   } catch (e) {
     next(e);
   }
 }
+
+export async function deleteAdminProduct(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const id = req.params.id as string;
+    const [existing] = await db
+      .select()
+      .from(products)
+      .where(eq(products.id, id))
+      .limit(1);
+
+    if (!existing) {
+      res.status(404).json({ error: "Not found" });
+      return;
+    }
+
+    const [countRow] = await db
+      .select({ c: count() })
+      .from(orderItems)
+      .where(eq(orderItems.productId, id));
+
+    if (Number(countRow?.c ?? 0) > 0) {
+      res.status(409).json({
+        error:
+          "This product is on one or more orders and cannot be deleted. Deactivate it instead.",
+      });
+      return;
+    }
+
+    await deleteImageKitAsset(env, existing.imageKitFileId);
+    await db.delete(products).where(eq(products.id, id));
+
+    // ✅ Use helpers: Invalidate caches when product is deleted
+    await invalidateProductCaches(id, existing.slug);
+
+    // If deleted product was featured, clear featured cache
+    if (existing.featured) {
+      await invalidateFeaturedProductsCache();
+    }
+
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+}
+
+// ============ ORDER MANAGEMENT ============
 
 export async function updateAdminOrder(
   req: Request,
@@ -215,45 +313,6 @@ export async function updateAdminOrder(
     }
 
     res.json({ order: row });
-  } catch (e) {
-    next(e);
-  }
-}
-
-export async function deleteAdminProduct(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const id = req.params.id as string;
-    const [existing] = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, id))
-      .limit(1);
-    if (!existing) {
-      res.status(404).json({ error: "Not found" });
-      return;
-    }
-
-    const [countRow] = await db
-      .select({ c: count() })
-      .from(orderItems)
-      .where(eq(orderItems.productId, id));
-
-    if (Number(countRow?.c ?? 0) > 0) {
-      res.status(409).json({
-        error:
-          "This product is on one or more orders and cannot be deleted. Deactivate it instead.",
-      });
-      return;
-    }
-
-    await deleteImageKitAsset(env, existing.imageKitFileId);
-    await db.delete(products).where(eq(products.id, id));
-
-    res.json({ ok: true });
   } catch (e) {
     next(e);
   }

@@ -15,6 +15,7 @@ import { IK_PRESETS, imageKitOptimizedUrl } from "../lib/imagekitUrl";
 import { Link } from "react-router";
 import { formatPrice } from "../utils/format";
 import { Show, SignInButton } from "@clerk/react";
+import ScrollToTop from "../lib/scroll";
 
 function CartPage() {
   const {
@@ -33,6 +34,7 @@ function CartPage() {
 
   return (
     <div className="text-left">
+      <ScrollToTop />
       <h1 className="mb-8 flex items-center gap-2 text-3xl font-bold text-base-content">
         <ShoppingCartIcon className="size-8 text-primary" aria-hidden />
         Cart
