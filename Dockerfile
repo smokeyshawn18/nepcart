@@ -2,9 +2,11 @@
 FROM node:22-bookworm-slim AS frontend-build
 WORKDIR /app/frontend
 
+# Enable pnpm and allow dependency build scripts in CI/Docker
 RUN corepack enable
+ENV PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
 
-# Copy frontend manifest + lockfile
+# Copy frontend manifest + lockfile and install deps
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
@@ -22,8 +24,9 @@ FROM node:22-bookworm-slim AS backend-build
 WORKDIR /app
 
 RUN corepack enable
+ENV PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
 
-# Copy backend manifest + lockfile
+# Copy backend manifest + lockfile, then install deps
 COPY backend/package.json backend/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
@@ -37,6 +40,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN corepack enable
+ENV PNPM_CONFIG_DANGEROUSLY_ALLOW_ALL_BUILDS=true
 
 # Install only production deps using lockfile
 COPY backend/package.json backend/pnpm-lock.yaml ./
