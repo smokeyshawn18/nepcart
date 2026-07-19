@@ -124,18 +124,22 @@ export async function listFeaturedProducts(
 ) {
   try {
     const page = Math.max(Number(req.query.page ?? 1), 1);
-    const limit = Math.max(Number(req.query.limit ?? 4), 1);
+    const limit = Math.max(Number(req.query.limit ?? 5), 1);
     const offset = (page - 1) * limit;
 
     const cacheKey = `featured-products:page:${page}:limit:${limit}`;
 
-    const cached = await redis.get(cacheKey);
-    if (cached) {
-      console.log("cache HIT", cacheKey);
-      return res.json(cached);
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        console.log("cache HIT", cacheKey);
+        return res.json(cached);
+      }
+    } catch (err) {
+      console.error("Redis GET error in listFeaturedProducts:", err);
     }
 
-    console.log(" cache MISS", cacheKey);
+    console.log("cache MISS", cacheKey);
 
     const whereClause = and(
       eq(products.active, true),
@@ -157,7 +161,7 @@ export async function listFeaturedProducts(
       .from(products)
       .where(whereClause);
 
-    const total = Number(count[0].count);
+    const total = Number(count[0]?.count ?? 0);
 
     const payload = {
       products: rows,
@@ -167,10 +171,15 @@ export async function listFeaturedProducts(
       hasMore: offset + rows.length < total,
     };
 
-    await redis.set(cacheKey, payload, { ex: 60 });
+    try {
+      await redis.set(cacheKey, payload, { ex: 60 });
+    } catch (err) {
+      console.error("Redis SET error in listFeaturedProducts:", err);
+    }
 
     res.json(payload);
   } catch (e) {
+    console.error("listFeaturedProducts threw:", e);
     next(e);
   }
 }
