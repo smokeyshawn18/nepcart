@@ -1,16 +1,20 @@
 # --- Stage 1: build the SPA (Vite) ---
 FROM node:22-bookworm-slim AS frontend-build
 WORKDIR /app/frontend
-COPY frontend/ ./
 
-# Empty = browser calls /api on the same host as the page
+RUN corepack enable
+
+# Copy frontend manifest + lockfile
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# Build args for environment variables
+ARG VITE_CLERK_PUBLISHABLE_KEY=""
 ENV VITE_API_URL=
-ARG VITE_CLERK_PUBLISHABLE_KEY
 ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
 
-# install pnpm (if you don't already via corepack)
-RUN corepack enable
-RUN pnpm install --no-audit --no-fund
+# Copy rest of frontend source and build
+COPY frontend/ ./
 RUN pnpm build
 
 # --- Stage 2: compile the API (TypeScript → JavaScript) ---
@@ -19,9 +23,11 @@ WORKDIR /app
 
 RUN corepack enable
 
+# Copy backend manifest + lockfile
 COPY backend/package.json backend/pnpm-lock.yaml ./
-RUN pnpm install --no-audit --no-fund --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
+# Copy backend source and build
 COPY backend/ ./
 RUN pnpm build
 
@@ -34,8 +40,7 @@ RUN corepack enable
 
 # Install only production deps using lockfile
 COPY backend/package.json backend/pnpm-lock.yaml ./
-RUN pnpm install --prod --no-audit --no-fund --frozen-lockfile \
-  && pnpm cache clean --force
+RUN pnpm install --prod --frozen-lockfile && pnpm cache clean --force
 
 # Copy compiled backend and built frontend
 COPY --from=backend-build /app/dist ./dist
