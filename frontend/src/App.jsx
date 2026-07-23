@@ -25,14 +25,14 @@ import CatalogPage from "./pages/CatalogPage";
 import { Toaster } from "react-hot-toast";
 import ShippingPolicy from "./components/ShippingPolicy";
 import PrivacyPolicy from "./components/PrivacyPolicy";
+import { GlobalLoader } from "./utils/globalLoader";
 
 function App() {
-  const { isLoaded, isSignedIn } = useAuth();
-
-  if (!isLoaded) return <PageLoader />;
+  const { isSignedIn } = useAuth();
 
   return (
     <>
+      <GlobalLoader />
       <Layout>
         <Toaster />
 

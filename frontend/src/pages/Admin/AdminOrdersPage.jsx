@@ -4,7 +4,6 @@ import { useAuth } from "@clerk/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ClipboardListIcon, TruckIcon } from "lucide-react";
 import { toast } from "react-hot-toast";
-import PageLoader from "../../components/PageLoader";
 import { OrdersListSkeleton } from "../../components/LoadingSkeletons.jsx";
 import { PageError } from "../../components/PageError";
 import { apiFetch } from "../../lib/api.js";
@@ -95,9 +94,8 @@ function AdminOrdersPage() {
     },
   });
 
-  if (!isLoaded) return <PageLoader />;
   if (!isSignedIn) return <Navigate to="/" replace />;
-  if (meLoading) return <PageLoader />;
+
   if (!isAdmin) return <Navigate to="/" replace />;
 
   if (isLoading) {
