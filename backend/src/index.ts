@@ -1,5 +1,5 @@
 import "dotenv/config";
-import express, { type Response } from "express";
+import express from "express";
 import cors from "cors";
 
 import fs from "node:fs";
@@ -76,16 +76,9 @@ app.use("/api/stream", rateLimit(apiLimiter, "api"), streamRouter);
 app.use("/api/me", rateLimit(authLimiter, "auth"), meRouter);
 app.use("/api/checkout", rateLimit(checkoutLimiter, "checkout"), chekoutRouter);
 app.use("/api/admin", rateLimit(adminLimiter, "admin"), adminRouter);
-app.use((res: Response, err: any) => {
-  console.error("Unhandled error:", err);
-  res.status(500).json({ error: "Internal server error" });
-});
 
 const publicDir = path.join(process.cwd(), "public");
 
-console.log("cwd:", process.cwd());
-console.log("publicDir:", publicDir);
-console.log("exists:", fs.existsSync(publicDir));
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
 
