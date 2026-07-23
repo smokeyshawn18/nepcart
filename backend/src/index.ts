@@ -20,15 +20,40 @@ import orderRouter from "./routes/orderRouter";
 
 import { polarWebhookHandler } from "./webhooks/polar";
 import { sentryClerkUserMiddleware } from "./middleware/sentryClerkUser";
+import { rateLimit } from "./middleware/rateLimitMiddleware";
+import {
+  apiLimiter,
+  authLimiter,
+  adminLimiter,
+  webhookLimiter,
+  checkoutLimiter,
+} from "./lib/rateLimit";
+import { clerkWebhookHandler } from "./webhooks/clerk";
 
 const env = getEnv();
 const app = express();
 
+app.set("trust proxy", 1); // trust first proxy
+
 const rawJson = express.raw({ type: "application/json", limit: "1mb" });
 
-app.post("/webhooks/polar", rawJson, (req, res) => {
-  void polarWebhookHandler(req, res);
-});
+app.post(
+  "/webhooks/polar",
+  rawJson,
+  rateLimit(webhookLimiter, "polar-webhook"), // IP-based since no Clerk auth here
+  (req, res) => {
+    void polarWebhookHandler(req, res);
+  },
+);
+
+app.post(
+  "/webhooks/clerk",
+  rawJson,
+  rateLimit(webhookLimiter, "clerk-webhook"),
+  (req, res) => {
+    void clerkWebhookHandler(req, res);
+  },
+);
 
 app.use(express.json());
 app.use(
@@ -44,12 +69,13 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.use("/api/me", meRouter);
-app.use("/api/products", productRouter);
-app.use("/api/stream", streamRouter);
-app.use("/api/checkout", chekoutRouter);
-app.use("/api/admin", adminRouter);
-app.use("/api/orders", orderRouter);
+app.use("/api/products", rateLimit(apiLimiter, "api"), productRouter);
+app.use("/api/orders", rateLimit(apiLimiter, "api"), orderRouter);
+app.use("/api/stream", rateLimit(apiLimiter, "api"), streamRouter);
+
+app.use("/api/me", rateLimit(authLimiter, "auth"), meRouter);
+app.use("/api/checkout", rateLimit(checkoutLimiter, "checkout"), chekoutRouter);
+app.use("/api/admin", rateLimit(adminLimiter, "admin"), adminRouter);
 app.use((res: Response, err: any) => {
   console.error("Unhandled error:", err);
   res.status(500).json({ error: "Internal server error" });
