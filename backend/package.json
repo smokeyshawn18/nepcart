@@ -20,6 +20,7 @@
     "@imagekit/nodejs": "^7.4.0",
     "@sentry/node": "^10.48.0",
     "@sentry/profiling-node": "^10.48.0",
+    "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "cors": "^2.8.5",
     "cron": "^4.4.0",
