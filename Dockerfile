@@ -50,6 +50,8 @@ RUN pnpm install --prod --frozen-lockfile && pnpm cache clean
 COPY --from=backend-build /app/dist ./dist
 COPY --from=frontend-build /app/frontend/dist ./public
 
+RUN ls -R /app
+
 EXPOSE 3001
 USER node
 

@@ -82,6 +82,10 @@ app.use((res: Response, err: any) => {
 });
 
 const publicDir = path.join(process.cwd(), "public");
+
+console.log("cwd:", process.cwd());
+console.log("publicDir:", publicDir);
+console.log("exists:", fs.existsSync(publicDir));
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
 
