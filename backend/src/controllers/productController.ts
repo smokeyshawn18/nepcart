@@ -4,6 +4,7 @@ import { products } from "../db/schema";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { getCacheWithTTL, setCacheWithTTL } from "../lib/redishelpers";
+import logger from "../config/logger";
 
 export async function listProducts(
   req: Request,
@@ -39,6 +40,14 @@ export async function listProducts(
     const total = Number(countRows[0]?.count ?? 0);
     const hasMore = offset + rows.length < total;
 
+    logger.info("Products listed", {
+      category: cat || "all",
+      page,
+      limit,
+      total,
+      returned: rows.length,
+      hasMore,
+    });
     res.json({
       products: rows,
       page,
@@ -68,6 +77,11 @@ export async function getProductsByIds(
       .from(products)
       .where(inArray(products.id, ids));
 
+    logger.info("Products fetched by IDs", {
+      requested: ids.length,
+      returned: rows.length,
+    });
+
     res.json({
       products: rows,
     });
@@ -90,6 +104,9 @@ export async function getCategories(
     const categories = [...new Set(rows.map((r) => r.category))].sort((a, b) =>
       a.localeCompare(b),
     );
+    logger.info("Categories fetched", {
+      count: categories.length,
+    });
 
     res.json({ categories });
   } catch (e) {
@@ -111,6 +128,13 @@ export async function getProductBySlug(
 
     if (!row || !row.active)
       return res.status(404).json({ error: "Not found" });
+    logger.warn("Product not found", {
+      slug: req.params.slug,
+    });
+    logger.info("Product fetched", {
+      slug: row.slug,
+      productId: row.id,
+    });
 
     res.json({ product: row });
   } catch (e) {
@@ -133,6 +157,11 @@ export async function listFeaturedProducts(
     // Use the helper
     const cached = await getCacheWithTTL(cacheKey);
     if (cached) {
+      logger.info("Featured products cache hit", {
+        page,
+        limit,
+        cacheKey,
+      });
       return res.json(cached);
     }
 
@@ -158,6 +187,12 @@ export async function listFeaturedProducts(
       .where(whereClause);
 
     const total = Number(count[0]?.count ?? 0);
+    logger.info("Featured products fetched", {
+      page,
+      limit,
+      total,
+      returned: rows.length,
+    });
 
     const payload = {
       products: rows,

@@ -3,23 +3,10 @@ import FeaturedProducts from "../components/FeaturedProduct";
 import { HomeHero } from "../components/HomeHero";
 import { PageError } from "../components/PageError";
 import { TrustStrip } from "../components/TrustStrip";
-import { useHomeCatalog } from "../hooks/useHomeCatalog";
+import { useHomeCategory } from "../hooks/useHomeCategories";
 
 function HomePage() {
-  const {
-    products,
-    categories,
-    categoryChipsLoading,
-    categoryFilter,
-    error,
-    loadingCategories,
-    loadingList,
-    isPlaceholderData,
-    page,
-    setPage,
-    setCategory,
-    hasMore,
-  } = useHomeCatalog();
+  const { categories, loadingCategories } = useHomeCategory();
 
   return (
     <div className="space-y-12">

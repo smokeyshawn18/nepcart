@@ -32,6 +32,9 @@ const envSchema = z.object({
   SENTRY_DSN: z.string().url().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+  LOG_LEVEL: z.string(),
+  SERVICE_NAME: z.string().optional(),
+  npm_package_version: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
