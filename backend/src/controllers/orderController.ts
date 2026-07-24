@@ -10,7 +10,7 @@ import {
   streamChatDisplayName,
   streamUserId,
 } from "../lib/stream";
-import { getEnv } from "../lib/env";
+import { getEnv } from "../config/env";
 
 const env = getEnv();
 

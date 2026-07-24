@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getEnv } from "../lib/env.js";
+import { getEnv } from "../config/env.js";
 import { checkoutSessions, orderItems, orders } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";

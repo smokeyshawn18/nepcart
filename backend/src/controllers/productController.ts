@@ -3,8 +3,8 @@ import { db } from "../db";
 import { products } from "../db/schema";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
-import { getCacheWithTTL, setCacheWithTTL } from "../lib/redishelpers";
 import logger from "../config/logger";
+import { getCacheWithTTL, setCacheWithTTL } from "../lib/cache";
 
 export async function listProducts(
   req: Request,

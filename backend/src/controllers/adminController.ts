@@ -3,17 +3,16 @@ import type { Request, Response, NextFunction } from "express";
 import { getLocalUser } from "../lib/users";
 import { isAdmin } from "../lib/roles";
 import ImageKit from "@imagekit/nodejs";
-import { getEnv } from "../lib/env";
+import { getEnv } from "../config/env";
 import { db } from "../db";
 import { orderItems, orders, products } from "../db/schema";
 import { count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { deleteImageKitAsset } from "../lib/imagekit";
-
 import {
   invalidateFeaturedProductsCache,
   invalidateProductCaches,
-} from "../lib/redishelpers";
+} from "../lib/cache";
 
 const env = getEnv();
 

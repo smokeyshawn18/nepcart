@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getEnv } from "../lib/env";
+import { getEnv } from "../config/env";
 import z from "zod";
 import { getAuth } from "@clerk/express";
 import { getLocalUser } from "../lib/users";

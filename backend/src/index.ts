@@ -8,8 +8,8 @@ import path from "node:path";
 import * as Sentry from "@sentry/node";
 
 import { clerkMiddleware } from "@clerk/express";
-import { getEnv } from "./lib/env";
-import keepAliveCron from "./lib/cron";
+import { getEnv } from "./config/env";
+import keepAliveCron from "./config/cron";
 
 import productRouter from "./routes/productRouter";
 import meRouter from "./routes/meRouter";
@@ -27,7 +27,7 @@ import {
   adminLimiter,
   webhookLimiter,
   checkoutLimiter,
-} from "./lib/rateLimit";
+} from "./config/rateLimit";
 import { clerkWebhookHandler } from "./webhooks/clerk";
 
 const env = getEnv();

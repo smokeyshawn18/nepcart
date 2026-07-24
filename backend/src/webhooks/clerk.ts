@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { getEnv } from "../lib/env";
+import { getEnv } from "../config/env";
 import { verifyWebhook } from "@clerk/backend/webhooks";
 import { parseRole } from "../lib/roles";
 import { db } from "../db";

@@ -1,5 +1,5 @@
 import winston from "winston";
-import { getEnv } from "../lib/env";
+import { getEnv } from "./env";
 // Uncomment if deploying to a VPS and using file-based logs.
 // import "winston-daily-rotate-file";
 
