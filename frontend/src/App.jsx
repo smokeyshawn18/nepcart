@@ -5,7 +5,7 @@ import {
   useAuth,
   UserButton,
 } from "@clerk/react";
-import PageLoader from "./components/PageLoader";
+
 import Layout from "./components/Layout";
 import { Routes, Route, Navigate } from "react-router";
 import HomePage from "./pages/HomePage";
@@ -32,7 +32,7 @@ function App() {
 
   return (
     <>
-      <GlobalLoader />
+      {/* <GlobalLoader /> */}
       <Layout>
         <Toaster />
 
