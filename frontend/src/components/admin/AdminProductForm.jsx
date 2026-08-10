@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { uploadImageToImageKit } from "../lib/imagekitUpload.js";
-import { IK_PRESETS, imageKitOptimizedUrl } from "../lib/imagekitUrl.js";
+import { uploadImageToImageKit } from "../../lib/imagekitUpload.js";
+import { IK_PRESETS, imageKitOptimizedUrl } from "../../lib/imagekitUrl.js";
 
 export function AdminProductForm({
   initial,

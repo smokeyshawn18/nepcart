@@ -95,7 +95,7 @@ const Navbar = () => {
                 ].join(" ")}
               >
                 <PackageIcon className="size-6 opacity-90" aria-hidden />
-                <span>Orders</span>
+                <span>Your Orders</span>
               </Link>
 
               {role === "admin" && (
@@ -108,17 +108,7 @@ const Navbar = () => {
                     ].join(" ")}
                   >
                     <SettingsIcon className="size-6" aria-hidden />
-                    <span>Products</span>
-                  </Link>
-                  <Link
-                    to="/admin/orders"
-                    className={[
-                      "btn btn-ghost gap-2 font-medium text-secondary",
-                      isActive("/admin/orders") ? "bg-secondary/10" : "",
-                    ].join(" ")}
-                  >
-                    <ClipboardListIcon className="size-6" aria-hidden />
-                    <span>Orders</span>
+                    <span>Admin Panel</span>
                   </Link>
                 </>
               )}
