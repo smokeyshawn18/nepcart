@@ -1,11 +1,23 @@
-export function formatPrice(cents, currency) {
+export function formatPrice({
+  cents,
+  currency,
+}: {
+  cents: number;
+  currency?: string;
+}) {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: (currency ?? "npr").toUpperCase(),
   }).format(cents / 100);
 }
 
-export function formatOrderWhen(iso, opts = {}) {
+export function formatOrderWhen({
+  iso,
+  opts = {},
+}: {
+  iso?: string;
+  opts?: { dateStyle?: Intl.DateTimeFormatOptions["dateStyle"] };
+} = {}) {
   const { dateStyle = "medium" } = opts;
   if (!iso) return "";
 

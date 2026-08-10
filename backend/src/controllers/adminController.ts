@@ -7,56 +7,20 @@ import { getEnv } from "../config/env";
 import { db } from "../db";
 import { orderItems, orders, products } from "../db/schema";
 import { count, desc, eq } from "drizzle-orm";
-import { z } from "zod";
+
 import { deleteImageKitAsset } from "../lib/imagekit";
 import {
   invalidateFeaturedProductsCache,
   invalidateProductCaches,
 } from "../lib/cache";
+import {
+  orderStatusPatch,
+  productCreate,
+  productPatch,
+} from "../utils/admin-product-schema";
+import { buildProductUpdateSet } from "../utils/product-bulk-update";
 
 const env = getEnv();
-
-const productCreate = z.object({
-  slug: z.string().min(1),
-  name: z.string().min(1),
-  category: z.string().min(1).default("General"),
-  description: z.string().default(""),
-  priceCents: z.number().int().positive(),
-  currency: z.string().min(1).default("usd"),
-  imageUrl: z
-    .union([z.string().url(), z.literal("")])
-    .optional()
-    .nullable(),
-  imageKitFileId: z
-    .union([z.string().min(1), z.literal(""), z.null()])
-    .optional(),
-  active: z.boolean().default(true),
-  featured: z.boolean().optional(),
-});
-
-const productPatch = productCreate.partial();
-const orderStatusPatch = z.object({
-  status: z.enum(["pending", "paid", "failed", "delivered", "cancelled"]),
-});
-
-function buildProductUpdateSet(body: z.infer<typeof productPatch>) {
-  const data: Partial<typeof products.$inferInsert> = {};
-  if (body.slug !== undefined) data.slug = body.slug;
-  if (body.name !== undefined) data.name = body.name;
-  if (body.category !== undefined) data.category = body.category;
-  if (body.description !== undefined) data.description = body.description;
-  if (body.priceCents !== undefined) data.priceCents = body.priceCents;
-  if (body.currency !== undefined) data.currency = body.currency;
-  if (body.imageUrl !== undefined)
-    data.imageUrl = body.imageUrl === "" ? null : body.imageUrl;
-  if (body.imageKitFileId !== undefined) {
-    data.imageKitFileId =
-      body.imageKitFileId === "" ? null : body.imageKitFileId;
-  }
-  if (body.active !== undefined) data.active = body.active;
-  if (body.featured !== undefined) data.featured = body.featured;
-  return data;
-}
 
 // ============ MIDDLEWARE ============
 
