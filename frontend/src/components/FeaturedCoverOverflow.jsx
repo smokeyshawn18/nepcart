@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { formatPrice } from "../utils/format";
 
 const PERSPECTIVE = 1600;
 const SCALE_STEP = 0.16;
@@ -335,16 +336,18 @@ export function FeaturedCoverflow(props) {
                           {slide.description}
                         </div>
                       )}
-                      <div
-                        style={{
-                          fontSize: isMobile ? 15 : 18,
-                          fontWeight: 700,
-                          color: "#fff",
-                          textShadow: "0 2px 8px rgba(0,0,0,0.5)",
-                        }}
-                      >
-                        NPR {(slide.priceCents / 100).toLocaleString()}
-                      </div>
+                      {Number.isFinite(Number(slide.priceCents)) && (
+                        <div
+                          style={{
+                            fontSize: isMobile ? 15 : 18,
+                            fontWeight: 700,
+                            color: "#fff",
+                            textShadow: "0 2px 8px rgba(0,0,0,0.5)",
+                          }}
+                        >
+                          {formatPrice(slide.priceCents, slide.currency)}
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
