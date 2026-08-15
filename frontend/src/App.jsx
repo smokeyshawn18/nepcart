@@ -22,7 +22,7 @@ import AdminOrdersPage from "./pages/Admin/AdminOrdersPage";
 import CatalogPage from "./pages/CatalogPage";
 
 import ShippingPolicy from "./components/ShippingPolicy";
-import PrivacyPolicy from "./components/PrivacyPolicy";
+// import PrivacyPolicy from "./components/PrivacyPolicy";
 
 function App() {
   const { getToken, isSignedIn } = useAuth();
@@ -50,7 +50,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
-        <Route path="/privacy" element={<PrivacyPolicy />} />
+        {/* <Route path="/privacy" element={<PrivacyPolicy />} /> */}
         <Route path="/cart" element={<CartPage />} />
         <Route path="/product/:slug" element={<ProductDetailPage />} />
 

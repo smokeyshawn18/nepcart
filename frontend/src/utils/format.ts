@@ -1,14 +1,25 @@
-export function formatPrice({
-  cents,
-  currency,
-}: {
-  cents: number;
-  currency?: string;
-}) {
+export function formatPrice(
+  arg: number | { cents: number; currency?: string },
+  maybeCurrency?: string,
+) {
+  let cents: number | undefined;
+  let currency: string | undefined;
+
+  if (typeof arg === "number") {
+    cents = arg;
+    currency = maybeCurrency;
+  } else if (arg && typeof arg === "object") {
+    cents = arg.cents;
+    currency = arg.currency;
+  }
+
+  const c = Number(cents ?? NaN);
+  if (!Number.isFinite(c)) return "";
+
   return new Intl.NumberFormat(undefined, {
     style: "currency",
     currency: (currency ?? "npr").toUpperCase(),
-  }).format(cents / 100);
+  }).format(c / 100);
 }
 
 export function formatOrderWhen({
