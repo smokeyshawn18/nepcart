@@ -59,6 +59,14 @@ function StatusIcon({ status }) {
   return <Icon className="size-5" />;
 }
 
+function FullScreenLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <span className="loading loading-spinner loading-lg" />
+    </div>
+  );
+}
+
 function OrderCard({ order, onStatusChange, isPending, currentStatus }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const config = getStatusConfig(currentStatus);
@@ -291,12 +299,12 @@ function AdminOrdersPage() {
     enabled: isSignedIn,
   });
 
-  const isAdmin = meData?.user?.role === "admin";
+  const isStaff = ["admin", "support"].includes(meData?.user?.role);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["orders"],
     queryFn: () => apiFetch("/api/orders", { getToken }),
-    enabled: isSignedIn && isAdmin,
+    enabled: isSignedIn && isStaff,
   });
 
   const updateStatusMutation = useMutation({
@@ -322,8 +330,24 @@ function AdminOrdersPage() {
     },
   });
 
+  // --- Auth / role guards, in order -----------------------------------
+  // Wait for Clerk to resolve before making any redirect decision -
+  // isSignedIn is undefined (falsy) until isLoaded is true, so checking
+  // it early causes a false redirect on cold loads / hard refreshes.
+  if (!isLoaded) {
+    return <FullScreenLoader />;
+  }
+
   if (!isSignedIn) return <Navigate to="/" replace />;
-  if (!isAdmin) return <Navigate to="/" replace />;
+
+  // Wait for the role lookup before deciding on staff access - meData
+  // isn't available yet on first render, so isStaff would be false even
+  // for a legitimate admin/support user while this request is in flight.
+  if (meLoading) {
+    return <FullScreenLoader />;
+  }
+
+  if (!isStaff) return <Navigate to="/" replace />;
 
   if (isLoading) {
     return (

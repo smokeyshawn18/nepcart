@@ -5,6 +5,8 @@ import { PackageIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import { formatPrice } from "../../utils/format.js";
 
 import { AdminProductForm } from "../../components/admin/AdminProductForm.jsx";
+import { Navigate } from "react-router";
+import { isStaffRole } from "../../utils/roles.js";
 
 function AdminProductsPage() {
   const {
@@ -20,7 +22,7 @@ function AdminProductsPage() {
     deleteMutation,
   } = useAdminProductsPage();
 
-  if (meData && meData.user?.role !== "admin") {
+  if (meData && !isStaffRole(meData.user?.role)) {
     return <Navigate to="/" replace />;
   }
 

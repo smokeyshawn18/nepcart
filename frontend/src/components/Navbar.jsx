@@ -15,6 +15,7 @@ import {
   ClipboardListIcon,
 } from "lucide-react";
 import { useCart } from "../store/cart";
+import { isStaffRole } from "../utils/roles";
 
 const navLinks = [
   { to: "/catalog", label: "Browse Shop", icon: ShirtIcon },
@@ -88,17 +89,19 @@ const Navbar = () => {
 
             <Show when="signed-in">
               <Link
-                to="/orders"
+                to={isStaffRole(role) ? "/admin/orders" : "/orders"}
                 className={[
                   "btn btn-ghost gap-2 font-medium",
-                  isActive("/orders") ? "bg-primary/10 text-primary" : "",
+                  isActive(isStaffRole(role) ? "/admin/orders" : "/orders")
+                    ? "bg-primary/10 text-primary"
+                    : "",
                 ].join(" ")}
               >
                 <PackageIcon className="size-6 opacity-90" aria-hidden />
-                <span>Your Orders</span>
+                <span>{isStaffRole(role) ? "All Orders" : "Your Orders"}</span>
               </Link>
 
-              {role === "admin" && (
+              {isStaffRole(role) && (
                 <>
                   <Link
                     to="/admin"

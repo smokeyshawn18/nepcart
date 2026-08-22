@@ -10,6 +10,7 @@ import { BrowserRouter } from "react-router";
 import { SentryErrorFallback } from "./components/SentryErrorFallback.jsx";
 import { SentryUserSync } from "./components/SentryUserSync.jsx";
 import App from "./App.jsx";
+import { StrictMode } from "react";
 
 const queryClient = new QueryClient();
 
@@ -41,16 +42,19 @@ Sentry.init({
 });
 
 createRoot(document.getElementById("root")).render(
-  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-    <SentryUserSync />
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Sentry.ErrorBoundary fallback={<SentryErrorFallback />}>
-          <App />
-        </Sentry.ErrorBoundary>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </ClerkProvider>,
+  <StrictMode>
+    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+      <SentryUserSync />
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Sentry.ErrorBoundary fallback={<SentryErrorFallback />}>
+            <App />
+          </Sentry.ErrorBoundary>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ClerkProvider>
+    ,
+  </StrictMode>,
 );
 
 // In simple terms, 'browserTracingIntegration' lets Sentry see things like:

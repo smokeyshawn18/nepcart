@@ -1,9 +1,0 @@
-{
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://nepcart-uz7o.onrender.com/api/$1"
-    },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}

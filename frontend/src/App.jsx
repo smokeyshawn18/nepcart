@@ -23,22 +23,40 @@ import CatalogPage from "./pages/CatalogPage";
 
 import ShippingPolicy from "./components/ShippingPolicy";
 import EsewaReturnPage from "./pages/EsewaReturnPage";
+import { isStaffRole } from "./utils/roles";
 // import PrivacyPolicy from "./components/PrivacyPolicy";
 
-function App() {
-  const { getToken, isSignedIn } = useAuth();
+function FullScreenLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <span className="loading loading-spinner loading-lg" />
+    </div>
+  );
+}
 
-  const { data: meData, isLoading } = useQuery({
+function App() {
+  const { getToken, isSignedIn, isLoaded } = useAuth();
+
+  const { data: meData, isLoading: meLoading } = useQuery({
     queryKey: ["me"],
     queryFn: () => apiFetch("/api/me", { getToken }),
     enabled: !!isSignedIn,
   });
 
-  const isAdmin = meData?.user?.role === "admin";
+  const isStaff = isStaffRole(meData?.user?.role);
 
-  // Wait until we know the user's role
-  if (isSignedIn && isLoading) {
-    return <div>Loading...</div>;
+  // Wait for Clerk to resolve before making any auth decision - isSignedIn
+  // is undefined (falsy) until isLoaded is true, which causes a false
+  // redirect on cold loads / hard refreshes of any guarded route below.
+  if (!isLoaded) {
+    return <FullScreenLoader />;
+  }
+
+  // Wait for the role lookup before deciding staff-only access - meData
+  // isn't populated yet on first render, so isStaff would read false even
+  // for a legitimate admin/support user while this request is in flight.
+  if (isSignedIn && meLoading) {
+    return <FullScreenLoader />;
   }
 
   return (
@@ -64,7 +82,6 @@ function App() {
         <Route path="/checkout/esewa/return" element={<EsewaReturnPage />} />
 
         <Route path="/demo-sentry" element={<SentryDemoPage />} />
-
         <Route
           path="/orders/:id/call"
           element={
@@ -79,13 +96,13 @@ function App() {
       </Route>
 
       {/* ==================== */}
-      {/* ADMIN ROUTES */}
+      {/* ADMIN / STAFF ROUTES */}
       {/* ==================== */}
 
       <Route
         path="/admin"
         element={
-          isSignedIn && isAdmin ? <AdminLayout /> : <Navigate to="/" replace />
+          isSignedIn && isStaff ? <AdminLayout /> : <Navigate to="/" replace />
         }
       >
         <Route index element={<AdminProductsPage />} />
