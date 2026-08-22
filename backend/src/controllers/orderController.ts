@@ -21,22 +21,45 @@ export async function listOrders(
 ) {
   try {
     const { userId, isAuthenticated } = getAuth(req);
+
     if (!isAuthenticated || !userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
     const localUser = await getLocalUser(userId);
+
     if (!localUser) {
       res.status(503).json({ error: "Account not synced yet" });
       return;
     }
 
+    const baseQuery = db
+      .select({
+        id: orders.id,
+        userId: orders.userId,
+        status: orders.status,
+        paymentMethod: orders.paymentMethod,
+        shippingAddress: orders.shippingAddress,
+        billingAddress: orders.billingAddress,
+        polarCheckoutId: orders.polarCheckoutId,
+        polarOrderId: orders.polarOrderId,
+        totalCents: orders.totalCents,
+        createdAt: orders.createdAt,
+        updatedAt: orders.updatedAt,
+
+        user: {
+          id: users.id,
+          displayName: users.displayName,
+          email: users.email,
+        },
+      })
+      .from(orders)
+      .innerJoin(users, eq(orders.userId, users.id));
+
     const rows = isStaff(localUser.role)
-      ? await db.select().from(orders).orderBy(desc(orders.createdAt))
-      : await db
-          .select()
-          .from(orders)
+      ? await baseQuery.orderBy(desc(orders.createdAt))
+      : await baseQuery
           .where(eq(orders.userId, localUser.id))
           .orderBy(desc(orders.createdAt));
 
@@ -59,12 +82,14 @@ export async function listOrders(
 
       for (const row of itemRows) {
         const list = previewByOrder.get(row.orderId) ?? [];
+
         list.push({
           name: row.name,
           slug: row.slug,
           imageUrl: row.imageUrl,
           quantity: row.quantity,
         });
+
         previewByOrder.set(row.orderId, list);
       }
     }
@@ -74,7 +99,9 @@ export async function listOrders(
       previewItems: previewByOrder.get(o.id) ?? [],
     }));
 
-    res.json({ orders: ordersPayload });
+    res.json({
+      orders: ordersPayload,
+    });
   } catch (e) {
     next(e);
   }

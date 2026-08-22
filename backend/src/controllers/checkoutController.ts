@@ -38,6 +38,7 @@ const cartSchema = z.object({
     .min(1),
   paymentMethod: z.enum(["polar", "cod"]).default("polar"),
   shippingAddress: shippingAddressSchema.optional(),
+  billingAddress: shippingAddressSchema.optional(),
 });
 
 export async function createCheckout(req: Request, res: Response) {
@@ -130,6 +131,7 @@ export async function createCheckout(req: Request, res: Response) {
     }
 
     const shippingAddress = parsed.data.shippingAddress ?? null;
+    const billingAddress = parsed.data.billingAddress ?? null;
 
     if (paymentMethod === "polar") {
       console.log("Creating checkout session in DB...");
@@ -139,6 +141,7 @@ export async function createCheckout(req: Request, res: Response) {
         .values({
           userId: localUser.id,
           shippingAddress,
+          billingAddress,
           lines,
           totalCents,
           currency,
@@ -185,6 +188,7 @@ export async function createCheckout(req: Request, res: Response) {
         .values({
           userId: localUser.id,
           shippingAddress,
+          billingAddress,
           lines,
           totalCents,
           currency,

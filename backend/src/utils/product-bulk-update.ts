@@ -18,5 +18,6 @@ export function buildProductUpdateSet(body: z.infer<typeof productPatch>) {
   }
   if (body.active !== undefined) data.active = body.active;
   if (body.featured !== undefined) data.featured = body.featured;
+  if (body.quantity !== undefined) data.quantity = body.quantity;
   return data;
 }

@@ -35,6 +35,7 @@ export type ShippingAddress = {
   notes?: string;
 };
 
+export type BillingAddress = ShippingAddress;
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   clerkUserId: text("clerk_user_id").notNull().unique(),
@@ -58,6 +59,8 @@ export const products = pgTable("products", {
   priceCents: integer("price_cents").notNull(),
   currency: text("currency").notNull().default("usd"),
   imageUrl: text("image_url"),
+  /** Available stock/quantity for the product */
+  quantity: integer("quantity").notNull().default(0),
   /** ImageKit `fileId` for deletes */
   imageKitFileId: text("image_kit_file_id"),
   active: boolean("active").notNull().default(true),
@@ -75,6 +78,7 @@ export const checkoutSessions = pgTable("checkout_sessions", {
     .references(() => users.id, { onDelete: "cascade" }),
   polarCheckoutId: text("polar_checkout_id").unique(),
   shippingAddress: jsonb("shipping_address").$type<ShippingAddress>(),
+  billingAddress: jsonb("billing_address").$type<BillingAddress>(),
   lines: jsonb("lines").$type<CheckoutSessionLine[]>().notNull(),
   totalCents: integer("total_cents").notNull(),
   currency: text("currency").notNull(),
@@ -94,6 +98,7 @@ export const orders = pgTable("orders", {
     .notNull()
     .default("polar"),
   shippingAddress: jsonb("shipping_address").$type<ShippingAddress>(),
+  billingAddress: jsonb("billing_address").$type<BillingAddress>(),
   polarCheckoutId: text("polar_checkout_id"),
   polarOrderId: text("polar_order_id").unique(),
   totalCents: integer("total_cents").notNull().default(0),

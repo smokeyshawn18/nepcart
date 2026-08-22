@@ -41,6 +41,7 @@ async function fulfillCheckoutSession(
   sessionId: string,
   polarOrderId: string | undefined,
   checkoutId: string | undefined,
+  billingAddress?: Record<string, unknown> | null,
 ) {
   return await db.transaction(async (tx) => {
     const [session] = await tx
@@ -57,6 +58,7 @@ async function fulfillCheckoutSession(
         userId: session.userId,
         status: "paid",
         shippingAddress: session.shippingAddress ?? null,
+        billingAddress: billingAddress ?? session.billingAddress ?? null,
         totalCents: session.totalCents,
         polarCheckoutId: checkoutId ?? session.polarCheckoutId ?? null,
         ...(polarOrderId ? { polarOrderId } : {}),
@@ -117,6 +119,12 @@ export async function polarWebhookHandler(req: Request, res: Response) {
 
     if (event.type === "order.paid" && event.data) {
       const data = event.data;
+      // Log incoming Polar order data for debugging billing address presence
+      try {
+        console.info("Polar order.paid payload:", JSON.stringify(data));
+      } catch (e) {
+        console.info("Polar order.paid payload (non-serializable)");
+      }
       const polarOrderId = typeof data.id === "string" ? data.id : undefined;
       const checkoutId =
         typeof data.checkout_id === "string" ? data.checkout_id : undefined;
@@ -128,11 +136,27 @@ export async function polarWebhookHandler(req: Request, res: Response) {
 
       const sessionId = checkoutSessionIdFromMetadata(data);
 
+      // Try to extract billing address from Polar payload
+      let billingAddress: Record<string, unknown> | null = null;
+      if (data.billing_address && typeof data.billing_address === "object") {
+        billingAddress = data.billing_address as Record<string, unknown>;
+      } else if (
+        data.customer &&
+        typeof data.customer === "object" &&
+        (data.customer as Record<string, unknown>).billing_address &&
+        typeof (data.customer as Record<string, unknown>).billing_address ===
+          "object"
+      ) {
+        billingAddress = (data.customer as Record<string, unknown>)
+          .billing_address as Record<string, unknown>;
+      }
+
       if (sessionId) {
         const ok = await fulfillCheckoutSession(
           sessionId,
           polarOrderId,
           checkoutId,
+          billingAddress,
         );
 
         if (ok) {

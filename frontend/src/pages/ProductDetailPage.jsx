@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ProductPageSkeleton } from "../components/LoadingSkeletons";
 import { PageError } from "../components/PageError";
 import { useProductPage } from "../hooks/useProductPage";
@@ -26,6 +26,7 @@ const HIGHLIGHTS = [
 
 function ProductDetailPage() {
   const addItem = useCart((s) => s.addItem);
+  const navigate = useNavigate();
   const { product, isLoading, error } = useProductPage();
 
   if (isLoading) return <ProductPageSkeleton />;
@@ -130,7 +131,10 @@ function ProductDetailPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => addItem(p.id)}
+              onClick={() => {
+                addItem(p.id);
+                navigate("/cart");
+              }}
               className="btn btn-primary btn-lg gap-2 shadow-lg"
             >
               <ShoppingCartIcon className="size-5" aria-hidden />

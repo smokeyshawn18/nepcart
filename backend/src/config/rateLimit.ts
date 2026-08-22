@@ -13,7 +13,7 @@ const createSlidingWindowLimiter = (
     prefix: `ratelimit:${prefix}`,
   });
 
-export const authLimiter = createSlidingWindowLimiter(20, "30 m", "auth");
+export const authLimiter = createSlidingWindowLimiter(50, "30 m", "auth");
 export const apiLimiter = createSlidingWindowLimiter(50, "1 h", "api");
 export const checkoutLimiter = createSlidingWindowLimiter(
   10,

@@ -18,6 +18,7 @@ export function AdminProductForm({
     initial ? String(initial.priceCents / 100) : "",
   );
   const [currency, setCurrency] = useState(initial?.currency ?? "usd");
+  const [quantity, setQuantity] = useState(initial?.quantity ?? 0);
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
   const [imageKitFileId, setImageKitFileId] = useState(
     initial?.imageKitFileId ?? "",
@@ -39,6 +40,7 @@ export function AdminProductForm({
       description: description.trim(),
       priceCents: Math.round(dollars * 100),
       currency: currency.trim().toLowerCase(),
+      quantity: Number.isFinite(Number(quantity)) ? Number(quantity) : 0,
       imageUrl: imageUrl.trim() || null,
       imageKitFileId: imageKitFileId.trim() || null,
       active,
@@ -55,6 +57,7 @@ export function AdminProductForm({
       if (body.priceCents !== initial.priceCents)
         patch.priceCents = body.priceCents;
       if (body.currency !== initial.currency) patch.currency = body.currency;
+      if (body.quantity !== initial.quantity) patch.quantity = body.quantity;
       if ((body.imageUrl ?? "") !== (initial.imageUrl ?? ""))
         patch.imageUrl = body.imageUrl;
       if ((body.imageKitFileId ?? null) !== (initial.imageKitFileId ?? null)) {
@@ -173,6 +176,16 @@ export function AdminProductForm({
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
             required
+          />
+        </label>
+        <label className="form-control">
+          <span className="label-text">Quantity (stock)</span>
+          <input
+            className="input input-bordered"
+            type="number"
+            min="0"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
           />
         </label>
       </div>

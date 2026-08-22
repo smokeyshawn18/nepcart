@@ -7,6 +7,7 @@ export const productCreate = z.object({
   description: z.string().default(""),
   priceCents: z.number().int().positive(),
   currency: z.string().min(1).default("usd"),
+  quantity: z.number().int().nonnegative().default(0),
   imageUrl: z
     .union([z.string().url(), z.literal("")])
     .optional()

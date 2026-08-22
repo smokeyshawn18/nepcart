@@ -23,6 +23,7 @@ export default function useCartPage() {
   const items = useCart((s) => s.items);
   const setQty = useCart((s) => s.setQty);
   const removeItem = useCart((s) => s.removeItem);
+  const clearCart = useCart((s) => s.clear);
 
   const {
     data,
@@ -86,6 +87,13 @@ export default function useCartPage() {
       }
 
       if (res?.orderId) {
+        // clear cart locally for COD orders before redirecting to order page
+        try {
+          clearCart();
+        } catch (err) {
+          // ignore
+        }
+
         window.location.href = `/orders/${res.orderId}`;
         return;
       }

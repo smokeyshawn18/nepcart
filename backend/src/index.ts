@@ -69,7 +69,7 @@ app.get("/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-app.use("/api/products", rateLimit(apiLimiter, "api"), productRouter);
+app.use("/api/products", productRouter);
 app.use("/api/orders", rateLimit(apiLimiter, "api"), orderRouter);
 app.use("/api/stream", rateLimit(apiLimiter, "api"), streamRouter);
 

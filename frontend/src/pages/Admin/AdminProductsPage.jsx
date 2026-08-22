@@ -67,6 +67,7 @@ function AdminProductsPage() {
                 <th>Category</th>
                 <th>Slug</th>
                 <th>Price</th>
+                <th>Qty</th>
                 <th>Active</th>
                 <th />
               </tr>
@@ -106,6 +107,7 @@ function AdminProductsPage() {
                   </td>
                   <td className="font-mono text-sm opacity-80">{p.slug}</td>
                   <td>{formatPrice(p.priceCents, p.currency)}</td>
+                  <td className="font-mono text-sm">{p.quantity ?? 0}</td>
                   <td>
                     {p.active ? (
                       <span className="badge badge-success badge-sm">yes</span>
