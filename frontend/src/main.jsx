@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
@@ -42,18 +41,16 @@ Sentry.init({
 });
 
 createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
-      <SentryUserSync />
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <Sentry.ErrorBoundary fallback={<SentryErrorFallback />}>
-            <App />
-          </Sentry.ErrorBoundary>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ClerkProvider>
-  </StrictMode>,
+  <ClerkProvider publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}>
+    <SentryUserSync />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Sentry.ErrorBoundary fallback={<SentryErrorFallback />}>
+          <App />
+        </Sentry.ErrorBoundary>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ClerkProvider>,
 );
 
 // In simple terms, 'browserTracingIntegration' lets Sentry see things like:

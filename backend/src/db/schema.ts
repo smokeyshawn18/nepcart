@@ -15,7 +15,7 @@ export type OrderStatus =
   | "failed"
   | "delivered"
   | "cancelled";
-export type OrderPaymentMethod = "polar" | "cod";
+export type OrderPaymentMethod = "polar" | "esewa" | "cod";
 export type UserRole = "customer" | "support" | "admin";
 
 export type CheckoutSessionLine = {
@@ -77,6 +77,10 @@ export const checkoutSessions = pgTable("checkout_sessions", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   polarCheckoutId: text("polar_checkout_id").unique(),
+  providerRef: text("provider_ref"),
+  orderId: uuid("order_id").references(() => orders.id, {
+    onDelete: "set null",
+  }), // ← add this
   shippingAddress: jsonb("shipping_address").$type<ShippingAddress>(),
   billingAddress: jsonb("billing_address").$type<BillingAddress>(),
   lines: jsonb("lines").$type<CheckoutSessionLine[]>().notNull(),

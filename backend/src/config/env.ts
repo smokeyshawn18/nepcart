@@ -35,6 +35,11 @@ const envSchema = z.object({
   LOG_LEVEL: z.string(),
   SERVICE_NAME: z.string().optional(),
   npm_package_version: z.string().optional(),
+  // wherever getEnv() builds its schema
+  ESEWA_PAYMENT_URL: z.string().url(), // https://rc-epay.esewa.com.np/api/epay/main/v2/form
+  ESEWA_STATUS_CHECK_URL: z.string().url(), // https://rc.esewa.com.np/api/epay/transaction/status/
+  ESEWA_MERCHANT_CODE: z.string(),
+  ESEWA_SECRET_KEY: z.string(),
 });
 
 export type Env = z.infer<typeof envSchema>;

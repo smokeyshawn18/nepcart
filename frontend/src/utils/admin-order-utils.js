@@ -26,13 +26,10 @@ export function formatShippingAddress(address) {
   if (!address || typeof address !== "object") return null;
 
   const parts = [
-    address.fullName || address.name || "",
+    address.name || "",
     address.phone || "",
-    [address.line1, address.addressLine1, address.street]
-      .filter(Boolean)
-      .join(" "),
-    [address.line2, address.addressLine2].filter(Boolean).join(" "),
-    [address.city, address.state, address.postalCode, address.zip]
+    address.address || "",
+    [address.city, address.region, address.postalCode]
       .filter(Boolean)
       .join(" "),
     address.country || "",

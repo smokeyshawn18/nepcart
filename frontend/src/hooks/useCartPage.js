@@ -3,6 +3,7 @@ import { useAuth } from "@clerk/react";
 import { useCart } from "../store/cart";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "../lib/api";
+import { submitEsewaForm } from "../utils/submitEsewa.js";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -67,12 +68,7 @@ export default function useCartPage() {
           quantity: i.quantity,
         })),
         paymentMethod,
-        ...(paymentMethod === "cod" ||
-        Object.keys(normalizedShippingAddress).length > 0
-          ? {
-              shippingAddress: normalizedShippingAddress,
-            }
-          : {}),
+        shippingAddress: normalizedShippingAddress,
       };
 
       const res = await apiFetch("/api/checkout", {
@@ -82,7 +78,17 @@ export default function useCartPage() {
       });
 
       if (res?.checkoutUrl) {
+        // polar - hosted checkout page
         window.location.href = res.checkoutUrl;
+        return;
+      }
+
+      if (res?.paymentUrl && res?.paymentData) {
+        // esewa - full-page redirect. eSewa's login page uses Google
+        // reCAPTCHA, which broke when this ran inside a popup window
+        // (grecaptcha failed to init, login requests came back 400/401).
+        // Not worth fighting - navigate the whole tab away like Polar does.
+        submitEsewaForm(res.paymentUrl, res.paymentData);
         return;
       }
 

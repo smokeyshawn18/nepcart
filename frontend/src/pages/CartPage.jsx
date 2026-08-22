@@ -1,5 +1,5 @@
+import { useState } from "react";
 import {
-  Coins,
   HeadphonesIcon,
   LogInIcon,
   MinusIcon,
@@ -16,6 +16,7 @@ import { Link } from "react-router";
 import { formatPrice } from "../utils/format";
 import { Show, SignInButton } from "@clerk/react";
 import ScrollToTop from "../lib/scroll";
+import PaymentModal from "../components/PaymentModal";
 
 function CartPage() {
   const {
@@ -31,6 +32,8 @@ function CartPage() {
     shippingAddress,
     setShippingAddress,
   } = useCartPage();
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <div className="text-left">
@@ -159,7 +162,7 @@ function CartPage() {
             <Show when="signed-in">
               <button
                 type="button"
-                onClick={() => checkout("polar")}
+                onClick={() => setModalOpen(true)}
                 disabled={checkoutLoading}
                 aria-busy={checkoutLoading}
                 className="btn btn-primary mt-6 w-full gap-2"
@@ -172,118 +175,19 @@ function CartPage() {
                 ) : (
                   <ShoppingCartIcon className="size-4" aria-hidden />
                 )}
-                {checkoutLoading ? "Opening checkout…" : "Checkout securely"}
+                {checkoutLoading ? "Processing…" : "Checkout"}
               </button>
-              <span className="text-center mt-2">Or</span>
-              <div className="mt-4 rounded-box border border-base-300 bg-base-200/50 p-4 text-sm">
-                <p className="mb-3 font-semibold text-base-content">
-                  Fill Shipping details and click on Cash on Delivery to place
-                  your order. You can pay in cash when the product is delivered
-                  to you.
-                </p>
-                <div className="space-y-3">
-                  <input
-                    className="input input-bordered input-sm w-full"
-                    placeholder="Full name"
-                    value={shippingAddress.name}
-                    onChange={(event) =>
-                      setShippingAddress((current) => ({
-                        ...current,
-                        name: event.target.value,
-                      }))
-                    }
-                  />
-                  <input
-                    className="input input-bordered input-sm w-full"
-                    placeholder="Phone number"
-                    value={shippingAddress.phone}
-                    onChange={(event) =>
-                      setShippingAddress((current) => ({
-                        ...current,
-                        phone: event.target.value,
-                      }))
-                    }
-                  />
-                  <input
-                    className="input input-bordered input-sm w-full"
-                    placeholder="Address"
-                    value={shippingAddress.address}
-                    onChange={(event) =>
-                      setShippingAddress((current) => ({
-                        ...current,
-                        address: event.target.value,
-                      }))
-                    }
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      className="input input-bordered input-sm w-full"
-                      placeholder="City"
-                      value={shippingAddress.city}
-                      onChange={(event) =>
-                        setShippingAddress((current) => ({
-                          ...current,
-                          city: event.target.value,
-                        }))
-                      }
-                    />
-                    <input
-                      className="input input-bordered input-sm w-full"
-                      placeholder="Postal code"
-                      value={shippingAddress.postalCode}
-                      onChange={(event) =>
-                        setShippingAddress((current) => ({
-                          ...current,
-                          postalCode: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <input
-                    className="input input-bordered input-sm w-full"
-                    placeholder="Region"
-                    value={shippingAddress.region}
-                    onChange={(event) =>
-                      setShippingAddress((current) => ({
-                        ...current,
-                        region: event.target.value,
-                      }))
-                    }
-                  />
-                  <input
-                    className="input input-bordered input-sm w-full"
-                    placeholder="Country"
-                    value={shippingAddress.country}
-                    onChange={(event) =>
-                      setShippingAddress((current) => ({
-                        ...current,
-                        country: event.target.value,
-                      }))
-                    }
-                  />
-                  <textarea
-                    className="textarea textarea-bordered textarea-sm w-full"
-                    placeholder="Delivery notes"
-                    value={shippingAddress.notes}
-                    onChange={(event) =>
-                      setShippingAddress((current) => ({
-                        ...current,
-                        notes: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => checkout("cod")}
-                disabled={checkoutLoading}
-                aria-busy={checkoutLoading}
-                className="btn btn-outline btn-primary mt-6 w-full gap-2"
-              >
-                <Coins className="size-4" aria-hidden />
-                Cash on Delivery
-              </button>
+
+              <PaymentModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                onConfirm={async (method) => {
+                  await checkout(method);
+                }}
+                loading={checkoutLoading}
+                shippingAddress={shippingAddress}
+                setShippingAddress={setShippingAddress}
+              />
             </Show>
 
             <Show when="signed-out">

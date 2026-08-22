@@ -88,7 +88,7 @@ function OrderCard({ order, onStatusChange, isPending, currentStatus }) {
           <div className="text-right">
             <div className="text-sm text-base-content/60">Total</div>
             <div className="text-2xl font-bold text-base-content">
-              {formatPrice(order.total ?? 0)}
+              {formatPrice(order.totalCents ?? 0)}
             </div>
           </div>
           <div className={`badge badge-lg gap-1 ${config.color}`}>

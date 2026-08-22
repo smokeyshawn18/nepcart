@@ -22,6 +22,7 @@ import AdminOrdersPage from "./pages/Admin/AdminOrdersPage";
 import CatalogPage from "./pages/CatalogPage";
 
 import ShippingPolicy from "./components/ShippingPolicy";
+import EsewaReturnPage from "./pages/EsewaReturnPage";
 // import PrivacyPolicy from "./components/PrivacyPolicy";
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
         />
 
         <Route path="/checkout/return" element={<CheckoutReturnPage />} />
+        <Route path="/checkout/esewa/return" element={<EsewaReturnPage />} />
 
         <Route path="/demo-sentry" element={<SentryDemoPage />} />
 

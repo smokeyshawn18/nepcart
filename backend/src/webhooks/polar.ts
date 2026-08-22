@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { getEnv } from "../config/env.js";
 import { checkoutSessions, orderItems, orders } from "../db/schema.js";
+import type { BillingAddress } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 import { db } from "../db/index.js";
 import { Webhook } from "standardwebhooks";
@@ -15,6 +16,60 @@ function checkoutSessionIdFromMetadata(order: Record<string, unknown>) {
   if (!metadata || typeof metadata !== "object") return undefined;
   const sessionId = (metadata as Record<string, unknown>).checkout_session_id;
   return typeof sessionId === "string" ? sessionId : undefined;
+}
+
+// ---- Polar billing address mapping ----------------------------------------
+// Polar's payload shape does NOT match our internal BillingAddress shape
+// ({ name, phone, address, city, postalCode, region?, country?, notes? }).
+// This mapper normalizes whatever Polar sends into our shape so admin
+// views (formatShippingAddress) can render it consistently with eSewa/COD
+// addresses instead of silently dropping unrecognized fields.
+//
+// NOTE: field names below (line1, postal_code, state, etc.) are a best
+// guess based on typical payment-provider conventions. Confirm against a
+// real "Polar order.paid payload" log line and adjust field names if they
+// don't match what Polar actually sends.
+
+function mapPolarBillingAddress(
+  raw: Record<string, unknown> | null,
+  customer?: Record<string, unknown> | null,
+): BillingAddress | null {
+  if (!raw) return null;
+
+  const line1 = typeof raw.line1 === "string" ? raw.line1 : "";
+  const line2 = typeof raw.line2 === "string" ? raw.line2 : "";
+  const city = typeof raw.city === "string" ? raw.city : "";
+  const postalCode = typeof raw.postal_code === "string" ? raw.postal_code : "";
+  const country = typeof raw.country === "string" ? raw.country : undefined;
+  const state = typeof raw.state === "string" ? raw.state : undefined;
+
+  // Polar's billing_address object itself typically has no name/phone —
+  // those usually live on data.customer instead.
+  const name =
+    typeof raw.name === "string"
+      ? raw.name
+      : typeof customer?.name === "string"
+        ? (customer.name as string)
+        : "";
+
+  const phone =
+    typeof raw.phone === "string"
+      ? raw.phone
+      : typeof customer?.phone === "string"
+        ? (customer.phone as string)
+        : "";
+
+  if (!line1 && !city && !postalCode) return null;
+
+  return {
+    name,
+    phone,
+    address: [line1, line2].filter(Boolean).join(" "),
+    city,
+    postalCode,
+    region: state,
+    country,
+  };
 }
 
 async function alreadyPaid(polarOrderId?: string, checkoutId?: string) {
@@ -41,7 +96,7 @@ async function fulfillCheckoutSession(
   sessionId: string,
   polarOrderId: string | undefined,
   checkoutId: string | undefined,
-  billingAddress?: Record<string, unknown> | null,
+  billingAddress?: BillingAddress | null,
 ) {
   return await db.transaction(async (tx) => {
     const [session] = await tx
@@ -136,20 +191,31 @@ export async function polarWebhookHandler(req: Request, res: Response) {
 
       const sessionId = checkoutSessionIdFromMetadata(data);
 
-      // Try to extract billing address from Polar payload
-      let billingAddress: Record<string, unknown> | null = null;
-      if (data.billing_address && typeof data.billing_address === "object") {
-        billingAddress = data.billing_address as Record<string, unknown>;
-      } else if (
-        data.customer &&
-        typeof data.customer === "object" &&
-        (data.customer as Record<string, unknown>).billing_address &&
-        typeof (data.customer as Record<string, unknown>).billing_address ===
-          "object"
-      ) {
-        billingAddress = (data.customer as Record<string, unknown>)
-          .billing_address as Record<string, unknown>;
+      // Extract raw billing address + customer object from Polar payload
+      let rawBillingAddress: Record<string, unknown> | null = null;
+      let rawCustomer: Record<string, unknown> | null = null;
+
+      if (data.customer && typeof data.customer === "object") {
+        rawCustomer = data.customer as Record<string, unknown>;
       }
+
+      if (data.billing_address && typeof data.billing_address === "object") {
+        rawBillingAddress = data.billing_address as Record<string, unknown>;
+      } else if (
+        rawCustomer &&
+        rawCustomer.billing_address &&
+        typeof rawCustomer.billing_address === "object"
+      ) {
+        rawBillingAddress = rawCustomer.billing_address as Record<
+          string,
+          unknown
+        >;
+      }
+
+      const billingAddress = mapPolarBillingAddress(
+        rawBillingAddress,
+        rawCustomer,
+      );
 
       if (sessionId) {
         const ok = await fulfillCheckoutSession(
