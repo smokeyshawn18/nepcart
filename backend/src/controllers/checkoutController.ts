@@ -5,7 +5,7 @@ import {
   createCheckout as createCheckoutService,
   verifyEsewaCheckout as verifyEsewaCheckoutService,
 } from "../services/checkout.services";
-import { CheckoutError } from "../utils/checkoutErrHelper";
+import { CheckoutError } from "../utils/checkout.utils";
 
 const addressSchema = z.object({
   name: z.string().min(1),
