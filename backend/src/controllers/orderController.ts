@@ -40,6 +40,11 @@ export async function listOrders(
         userId: orders.userId,
         status: orders.status,
         paymentMethod: orders.paymentMethod,
+
+        // Refund information
+        refundEsewaNumber: orders.refundEsewaNumber,
+        refundStatus: orders.refundStatus,
+
         shippingAddress: orders.shippingAddress,
         billingAddress: orders.billingAddress,
         polarCheckoutId: orders.polarCheckoutId,
@@ -52,6 +57,7 @@ export async function listOrders(
           id: users.id,
           displayName: users.displayName,
           email: users.email,
+          esewaNumber: users.esewaNumber,
         },
       })
       .from(orders)
@@ -166,12 +172,14 @@ export async function cancelOrder(
 ) {
   try {
     const { userId, isAuthenticated } = getAuth(req);
+
     if (!isAuthenticated || !userId) {
       res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
     const localUser = await getLocalUser(userId);
+
     if (!localUser) {
       res.status(503).json({ error: "Account not synced yet" });
       return;
@@ -193,18 +201,46 @@ export async function cancelOrder(
       return;
     }
 
-    if (order.paymentMethod !== "cod" || order.status !== "pending") {
-      res.status(400).json({ error: "This order cannot be cancelled" });
+    if (order.status === "delivered" || order.status === "cancelled") {
+      res.status(400).json({
+        error: "This order cannot be cancelled",
+      });
+      return;
+    }
+
+    const { refundEsewaNumber } = req.body;
+
+    // Paid online orders need an eSewa number for manual refund
+    if (
+      order.paymentMethod !== "cod" &&
+      (!refundEsewaNumber || String(refundEsewaNumber).trim().length === 0)
+    ) {
+      res.status(400).json({
+        error: "eSewa number is required for a refund",
+      });
       return;
     }
 
     const [updatedOrder] = await db
       .update(orders)
-      .set({ status: "cancelled", updatedAt: new Date() })
+      .set({
+        status: "cancelled",
+
+        refundEsewaNumber:
+          order.paymentMethod === "cod"
+            ? null
+            : String(refundEsewaNumber).trim(),
+
+        refundStatus: order.paymentMethod === "cod" ? "none" : "pending",
+
+        updatedAt: new Date(),
+      })
       .where(eq(orders.id, order.id))
       .returning();
 
-    res.json({ order: updatedOrder });
+    res.json({
+      order: updatedOrder,
+    });
   } catch (e) {
     next(e);
   }

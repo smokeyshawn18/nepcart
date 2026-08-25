@@ -253,7 +253,7 @@ export async function verifyEsewaCheckout(encodedData: string) {
   if (!session) {
     throw new CheckoutError("Checkout session not found", 404);
   }
-  console.log("[eSewa verify] session found:", session);
+  // console.log("[eSewa verify] session found:", session);
 
   if (session.orderId) {
     return { orderId: session.orderId, paymentMethod: "esewa" as const };

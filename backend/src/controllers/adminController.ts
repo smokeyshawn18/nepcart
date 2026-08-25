@@ -1,7 +1,7 @@
 import { getAuth } from "@clerk/express";
 import type { Request, Response, NextFunction } from "express";
 import { getLocalUser } from "../lib/users";
-import { isAdmin } from "../lib/roles";
+import { isAdmin, isStaff } from "../lib/roles";
 import ImageKit from "@imagekit/nodejs";
 import { getEnv } from "../config/env";
 import { db } from "../db";
@@ -276,6 +276,61 @@ export async function updateAdminOrder(
     }
 
     res.json({ order: row });
+  } catch (e) {
+    next(e);
+  }
+}
+
+export async function updateRefundStatus(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { userId, isAuthenticated } = getAuth(req);
+
+    if (!isAuthenticated || !userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const localUser = await getLocalUser(userId);
+
+    if (!localUser || !isStaff(localUser.role)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+
+    const { refundStatus } = req.body;
+
+    const validStatuses = ["pending", "processing", "refunded", "rejected"];
+
+    if (!validStatuses.includes(refundStatus)) {
+      res.status(400).json({ error: "Invalid refund status" });
+      return;
+    }
+
+    const orderId = req.params.id;
+
+    if (typeof orderId !== "string") {
+      res.status(400).json({ error: "Invalid order ID" });
+      return;
+    }
+
+    const [order] = await db
+      .update(orders)
+      .set({
+        refundStatus,
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId))
+      .returning();
+    if (!order) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+
+    res.json({ order });
   } catch (e) {
     next(e);
   }

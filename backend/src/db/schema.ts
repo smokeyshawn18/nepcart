@@ -14,9 +14,12 @@ export type OrderStatus =
   | "paid"
   | "failed"
   | "delivered"
-  | "cancelled";
+  | "cancelled"
+  | "processing";
 export type OrderPaymentMethod = "polar" | "esewa" | "cod";
 export type UserRole = "customer" | "support" | "admin";
+
+export type RefundStatus = "none" | "pending" | "completed";
 
 export type CheckoutSessionLine = {
   productId: string;
@@ -42,6 +45,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().default(""),
   displayName: text("display_name"),
   role: text("role").$type<UserRole>().notNull().default("customer"),
+  esewaNumber: text("esewa_number"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -93,27 +97,43 @@ export const checkoutSessions = pgTable("checkout_sessions", {
 
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
+
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+
   status: text("status").$type<OrderStatus>().notNull().default("pending"),
+
   paymentMethod: text("payment_method")
     .$type<OrderPaymentMethod>()
     .notNull()
     .default("polar"),
+
+  refundEsewaNumber: text("refund_esewa_number"),
+
+  refundStatus: text("refund_status")
+    .$type<RefundStatus>()
+    .notNull()
+    .default("none"),
+
   shippingAddress: jsonb("shipping_address").$type<ShippingAddress>(),
+
   billingAddress: jsonb("billing_address").$type<BillingAddress>(),
+
   polarCheckoutId: text("polar_checkout_id"),
+
   polarOrderId: text("polar_order_id").unique(),
+
   totalCents: integer("total_cents").notNull().default(0),
+
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
+
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
 });
-
 export const orderItems = pgTable("order_items", {
   id: uuid("id").defaultRandom().primaryKey(),
   orderId: uuid("order_id")

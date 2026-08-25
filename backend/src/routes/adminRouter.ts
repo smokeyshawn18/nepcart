@@ -7,6 +7,7 @@ import {
   requireAdmin,
   updateAdminOrder,
   updateAdminProduct,
+  updateRefundStatus,
 } from "../controllers/adminController";
 
 const router: Router = Router();
@@ -21,5 +22,6 @@ router.patch("/products/:id", updateAdminProduct);
 router.patch("/orders/:id", updateAdminOrder);
 
 router.delete("/products/:id", deleteAdminProduct);
+router.patch("/orders/:id/refund", updateRefundStatus);
 
 export default router;
