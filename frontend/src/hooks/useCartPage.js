@@ -17,7 +17,7 @@ export default function useCartPage() {
     city: "",
     postalCode: "",
     region: "",
-    country: "",
+    country: "Nepal",
     notes: "",
   });
 

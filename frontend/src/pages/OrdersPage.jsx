@@ -79,6 +79,7 @@ function OrdersPage() {
                           {o.id.slice(0, 8)}…
                         </span>
 
+                        {/* Order status */}
                         <span
                           className={`badge badge-sm capitalize ${
                             o.status === "paid"
@@ -91,6 +92,17 @@ function OrdersPage() {
                           }`}
                         >
                           {o.status}
+                        </span>
+
+                        {/* Payment method */}
+                        <span className="badge badge-sm badge-outline ">
+                          {o.paymentMethod === "esewa"
+                            ? "Paid via eSewa"
+                            : o.paymentMethod === "polar"
+                              ? "Paid via Polar"
+                              : o.paymentMethod === "cod"
+                                ? "Cash on Delivery"
+                                : o.paymentMethod}
                         </span>
                       </div>
 

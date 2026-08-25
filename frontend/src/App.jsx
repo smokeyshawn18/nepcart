@@ -24,7 +24,7 @@ import CatalogPage from "./pages/CatalogPage";
 import ShippingPolicy from "./components/ShippingPolicy";
 import EsewaReturnPage from "./pages/EsewaReturnPage";
 import { isStaffRole } from "./utils/roles";
-// import PrivacyPolicy from "./components/PrivacyPolicy";
+import PrivacyPolicy from "./components/PrivacyPolicy";
 
 function FullScreenLoader() {
   return (
@@ -69,7 +69,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
-        {/* <Route path="/privacy" element={<PrivacyPolicy />} /> */}
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/product/:slug" element={<ProductDetailPage />} />
 
