@@ -16,6 +16,9 @@ RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 
+# Copy public static files if built in context
+COPY --from=builder /app/public ./public
+
 EXPOSE 4000
 USER node
 
