@@ -1,5 +1,13 @@
+import {
+  AlertCircleIcon,
+  CheckCircle2Icon,
+  ClipboardListIcon,
+  Clock,
+  TruckIcon,
+} from "lucide-react";
+
 const statusConfig = {
-  pending: { icon: ClockIcon, color: "bg-warning", accent: "border-l-warning" },
+  pending: { icon: Clock, color: "bg-warning", accent: "border-l-warning" },
   processing: {
     icon: TruckIcon,
     color: "bg-info",
