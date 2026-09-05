@@ -1,4 +1,4 @@
-# 🛒 PERN Stack E-Commerce Platform
+# 🛒 PERN Stack E-Commerce Platform - Nepcart
 
 ---
 
