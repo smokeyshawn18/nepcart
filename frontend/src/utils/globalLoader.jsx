@@ -1,14 +1,25 @@
-// import { useIsFetching, useIsMutating } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useIsFetching, useIsMutating } from "@tanstack/react-query";
+import NProgress from "nprogress";
+import "nprogress/nprogress.css";
 
-// import PageLoader from "../components/PageLoader";
+NProgress.configure({
+  showSpinner: false,
+  trickleSpeed: 200,
+  minimum: 0.08,
+});
 
-// export function GlobalLoader() {
-//   const fetching = useIsFetching();
-//   const mutating = useIsMutating();
+export function GlobalLoadingBar() {
+  const fetching = useIsFetching();
+  const mutating = useIsMutating();
 
-//   const loading = fetching > 0 || mutating > 0;
+  useEffect(() => {
+    if (fetching > 0 || mutating > 0) {
+      NProgress.start();
+    } else {
+      NProgress.done();
+    }
+  }, [fetching, mutating]);
 
-//   if (!loading) return null;
-
-//   return <PageLoader />;
-// }
+  return null;
+}

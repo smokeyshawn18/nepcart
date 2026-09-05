@@ -11,6 +11,7 @@ import { SentryErrorFallback } from "./components/SentryErrorFallback.jsx";
 import { SentryUserSync } from "./components/SentryUserSync.jsx";
 import App from "./App.jsx";
 import { StrictMode } from "react";
+import { GlobalLoadingBar } from "./utils/globalLoader.jsx";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ createRoot(document.getElementById("root")).render(
       <SentryUserSync />
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
+          <GlobalLoadingBar />
           <Sentry.ErrorBoundary fallback={<SentryErrorFallback />}>
             <App />
           </Sentry.ErrorBoundary>

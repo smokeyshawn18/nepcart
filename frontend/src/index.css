@@ -10,3 +10,25 @@ body {
   font-weight: 400;
   font-style: normal;
 }
+
+#nprogress .bar {
+  height: 2px;
+  background: linear-gradient(90deg, #4f46e5, #7c3aed, #9333ea);
+}
+
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0;
+
+  width: 120px;
+  height: 100%;
+
+  box-shadow:
+    0 0 10px #8b5cf6,
+    0 0 5px #a855f7;
+
+  opacity: 1;
+
+  transform: rotate(3deg) translate(0, -4px);
+}
